@@ -12,6 +12,8 @@
 
 This is a fork of [Delphox/ShareX](https://github.com/Delphox/ShareX), which itself forks upstream [ShareX/ShareX](https://github.com/ShareX/ShareX) to add **WEBP, AVIF and AV1 support**. All credit for the WEBP/AVIF/AV1 work goes to [Delphox](https://github.com/Delphox) — thank you!
 
+The **JPEG XL (.jxl) support** (encode/decode via libjxl) and the lower minimum video bitrate option are incorporated from [koloved/ShareX](https://github.com/koloved/ShareX/tree/jpegXL) by [koloved](https://github.com/koloved) — with a fix for its JXL decoder event enums, which did not match the libjxl API values and made JXL files fail to decode (only encoding worked).
+
 On top of that fork, this repository contains the following changes:
 
 ### Fixed
@@ -28,10 +30,15 @@ On top of that fork, this repository contains the following changes:
 * **Smoother scrolling** — removed transparent-background emulation in the thumbnail panels (opaque themed colors instead), enabled double buffering on the scroll containers, fixed mouse wheel scrolling the content twice per notch, removed a redundant full layout pass on every wheel tick, and raised the wheel scroll distance from 48 px to ~144 px per notch to better suit a thumbnail grid.
 * **Batched panel layout** — panel additions during startup are batched (`BeginBulkUpdate`/`EndBulkUpdate`) to avoid O(n²) relayouts.
 
+### Added
+* **JPEG XL (.jxl) image support** — capture output, thumbnails and file dialogs via libjxl (from [koloved/ShareX](https://github.com/koloved/ShareX/tree/jpegXL), with the decoder enum fix described above).
+* **Lower minimum video bitrate** — bitrate fields now allow 1 kbps minimum instead of 100, for tiny/low-motion recordings (from [koloved/ShareX](https://github.com/koloved/ShareX/tree/jpegXL)).
+
 ## Links
 * Official website: https://getsharex.com
 * Upstream ShareX: https://github.com/ShareX/ShareX
 * WEBP/AVIF/AV1 fork by Delphox: https://github.com/Delphox/ShareX
+* JPEG XL fork by koloved: https://github.com/koloved/ShareX
 * Changelog: https://getsharex.com/changelog
 * Privacy policy: https://getsharex.com/privacy-policy
 * Donate: https://getsharex.com/donate

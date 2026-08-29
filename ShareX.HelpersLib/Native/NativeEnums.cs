@@ -3660,15 +3660,18 @@ namespace ShareX.HelpersLib
         JXL_DEC_SUCCESS = 0,
         JXL_DEC_ERROR = 1,
         JXL_DEC_NEED_MORE_INPUT = 2,
-        JXL_DEC_NEED_IMAGE_OUT_BUFFER = 3,
-        JXL_DEC_IMAGE_OUT_BUFFER_SIZE = 4,
-        JXL_DEC_JPEG_NEED_MORE_INPUT = 5,
-        JXL_DEC_BASIC_INFO = 6,
-        JXL_DEC_COLOR_ENCODING = 7,
-        JXL_DEC_PREVIEW_IMAGE = 8,
-        JXL_DEC_FRAME = 9,
-        JXL_DEC_FRAME_PROGRESSION = 10,
-        JXL_DEC_FULL_IMAGE = 11
+        JXL_DEC_NEED_PREVIEW_OUT_BUFFER = 3,
+        JXL_DEC_NEED_IMAGE_OUT_BUFFER = 5,
+        JXL_DEC_JPEG_NEED_MORE_OUTPUT = 6,
+        JXL_DEC_BOX_NEED_MORE_OUTPUT = 7,
+        JXL_DEC_BASIC_INFO = 0x40,
+        JXL_DEC_COLOR_ENCODING = 0x100,
+        JXL_DEC_PREVIEW_IMAGE = 0x200,
+        JXL_DEC_FRAME = 0x400,
+        JXL_DEC_FULL_IMAGE = 0x1000,
+        JXL_DEC_JPEG_RECONSTRUCTION = 0x2000,
+        JXL_DEC_BOX = 0x4000,
+        JXL_DEC_FRAME_PROGRESSION = 0x8000
     }
 
     public enum JxlDataType
@@ -3787,11 +3790,13 @@ namespace ShareX.HelpersLib
     public static class JxlDecoderEvents
     {
         public const int JXL_DEC_BASIC_INFO = 0x0040;
-        public const int JXL_DEC_COLOR_ENCODING = 0x0080;
-        public const int JXL_DEC_PREVIEW_IMAGE = 0x0100;
-        public const int JXL_DEC_FRAME = 0x0200;
-        public const int JXL_DEC_FULL_IMAGE = 0x0400;
-        public const int JXL_DEC_FRAME_PROGRESSION = 0x0800;
+        public const int JXL_DEC_COLOR_ENCODING = 0x0100;
+        public const int JXL_DEC_PREVIEW_IMAGE = 0x0200;
+        public const int JXL_DEC_FRAME = 0x0400;
+        public const int JXL_DEC_FULL_IMAGE = 0x1000;
+        public const int JXL_DEC_JPEG_RECONSTRUCTION = 0x2000;
+        public const int JXL_DEC_BOX = 0x4000;
+        public const int JXL_DEC_FRAME_PROGRESSION = 0x8000;
     }
 
     #endregion JXL enums
