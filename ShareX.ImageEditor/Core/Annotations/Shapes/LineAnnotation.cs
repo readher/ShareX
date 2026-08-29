@@ -33,6 +33,8 @@ namespace ShareX.ImageEditor.Core.Annotations;
 public partial class LineAnnotation : Annotation, ICurvedSegmentAnnotation
 {
     public override AnnotationCategory Category => AnnotationCategory.Shapes;
+    public BorderStyle BorderStyle { get; set; } = BorderStyle.Solid;
+
     public SKPoint CurvePoint { get; set; }
     public bool CurvePointActivated { get; set; }
 

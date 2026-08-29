@@ -32,6 +32,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ShareX.ImageEditor.Core.Annotations;
 using ShareX.ImageEditor.Presentation.Controls;
+using ShareX.ImageEditor.Presentation.Helpers;
 using ShareX.ImageEditor.Presentation.Rendering;
 using ShareX.ImageEditor.Presentation.ViewModels;
 using ShareX.ImageEditor.Presentation.Views;
@@ -72,6 +73,9 @@ public class EditorSelectionController
     private global::Avalonia.Controls.Shapes.Ellipse? _hoverEllipseBlack;
     private global::Avalonia.Controls.Shapes.Ellipse? _hoverEllipseWhite;
     private TextBox? _balloonTextEditor;
+    private Point _lastPointerCanvasPoint;
+    private bool _hasLastPointerCanvasPoint;
+    private KeyModifiers _currentKeyModifiers;
 
     public Control? SelectedShape => _selectedShape;
     public bool IsInteractionActive => IsSelectionInteractionActive();
@@ -102,6 +106,11 @@ public class EditorSelectionController
         {
             SelectionChanged?.Invoke(false);
         }
+    }
+
+    internal void ClearHoverFeedback()
+    {
+        ClearHoverOutline();
     }
 
     public void SetSelectedShape(Control shape)
@@ -147,7 +156,12 @@ public class EditorSelectionController
         if (canvas == null) return false;
 
         var point = e.GetPosition(canvas);
-        var props = e.GetCurrentPoint(canvas).Properties;
+        _currentKeyModifiers = e.KeyModifiers;
+        if (_view.DataContext is MainViewModel vm && ShouldIgnoreSelection(vm, e.KeyModifiers))
+        {
+            UpdateSelectionHandles();
+            return false;
+        }
 
         // Check if clicked on a handle
         var overlay = _view.FindControl<Canvas>("OverlayCanvas");
@@ -166,7 +180,7 @@ public class EditorSelectionController
                 _isDraggingHandle = true;
                 _draggedHandle = handleSource;
                 _startPoint = point; // Capture start for resize delta
-                _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.GetClosedHandCursor());
+                _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
                 e.Handled = true;
                 return true;
             }
@@ -179,11 +193,11 @@ public class EditorSelectionController
         // But logic in EditorView.axaml.cs had:
         // if (vm.ActiveTool == EditorTool.Select ...) -> Try select.
 
-        if (_view.DataContext is MainViewModel vm)
+        if (_view.DataContext is MainViewModel activeVm)
         {
             // When a drawing tool is active, allow selecting and dragging only shapes
             // that belong to the same tool type, without switching to the Select tool.
-            if (vm.ActiveTool != EditorTool.Select && vm.ActiveTool != EditorTool.Spotlight && vm.ActiveTool != EditorTool.Freehand)
+            if (activeVm.ActiveTool != EditorTool.Select && activeVm.ActiveTool != EditorTool.Spotlight && activeVm.ActiveTool != EditorTool.Freehand)
             {
                 // Hit test - find the direct child of the canvas
                 var hitSource = e.Source as global::Avalonia.Visual;
@@ -201,30 +215,22 @@ public class EditorSelectionController
 
                 // Fallback: manual hit test for thin shapes (e.g. lines, arrows)
                 var manualHit = HitTestShape(canvas, point);
-                if (hitTarget == null || GetControlToolType(hitTarget) != vm.ActiveTool)
+                if (hitTarget == null || GetControlToolType(hitTarget) != activeVm.ActiveTool)
                 {
-                    if (manualHit != null && GetControlToolType(manualHit) == vm.ActiveTool)
+                    if (manualHit != null && GetControlToolType(manualHit) == activeVm.ActiveTool)
                     {
                         hitTarget = manualHit;
                     }
-                    else if (hitTarget != null && GetControlToolType(hitTarget) != vm.ActiveTool)
+                    else if (hitTarget != null && GetControlToolType(hitTarget) != activeVm.ActiveTool)
                     {
                         hitTarget = null;
                     }
                 }
 
-                if (hitTarget != null && GetControlToolType(hitTarget) == vm.ActiveTool)
+                if (hitTarget != null && GetControlToolType(hitTarget) == activeVm.ActiveTool)
                 {
-                    if (hitTarget is OutlinedTextControl otc && e.ClickCount == 2)
+                    if (e.ClickCount == 2 && TryHandleDoubleClickEdit(hitTarget, canvas))
                     {
-                        ShowTextEditor(otc, canvas);
-                        e.Handled = true;
-                        return true;
-                    }
-
-                    if (hitTarget is SpeechBalloonControl balloon && e.ClickCount == 2)
-                    {
-                        ShowSpeechBalloonTextEditor(balloon, canvas);
                         e.Handled = true;
                         return true;
                     }
@@ -235,13 +241,13 @@ public class EditorSelectionController
                     _lastDragPoint = point;
                     UpdateSelectionHandles();
                     SelectionChanged?.Invoke(true);
-                    _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.GetClosedHandCursor());
+                    _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
                     e.Handled = true;
                     return true;
                 }
             }
 
-            if (vm.ActiveTool == EditorTool.Select || vm.ActiveTool == EditorTool.Spotlight)
+            if (activeVm.ActiveTool == EditorTool.Select || activeVm.ActiveTool == EditorTool.Spotlight)
             {
                 // Hit test
                 var hitSource = e.Source as global::Avalonia.Visual;
@@ -269,7 +275,7 @@ public class EditorSelectionController
                     hitTarget = null;
                 }
 
-                if (vm.ActiveTool == EditorTool.Spotlight)
+                if (activeVm.ActiveTool == EditorTool.Spotlight)
                 {
                     if (!(hitTarget is SpotlightControl)) hitTarget = null;
                     if (!(manualHit is SpotlightControl)) manualHit = null;
@@ -277,16 +283,8 @@ public class EditorSelectionController
 
                 if (hitTarget != null)
                 {
-                    if (hitTarget is OutlinedTextControl otc && e.ClickCount == 2)
+                    if (e.ClickCount == 2 && TryHandleDoubleClickEdit(hitTarget, canvas))
                     {
-                        ShowTextEditor(otc, canvas);
-                        e.Handled = true;
-                        return true;
-                    }
-
-                    if (hitTarget is SpeechBalloonControl balloon && e.ClickCount == 2)
-                    {
-                        ShowSpeechBalloonTextEditor(balloon, canvas);
                         e.Handled = true;
                         return true;
                     }
@@ -297,7 +295,7 @@ public class EditorSelectionController
                     _lastDragPoint = point;
                     UpdateSelectionHandles();
                     SelectionChanged?.Invoke(true);
-                    _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.GetClosedHandCursor());
+                    _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
                     e.Handled = true;
                     return true;
                 }
@@ -305,16 +303,8 @@ public class EditorSelectionController
                 {
                     if (manualHit != null)
                     {
-                        if (manualHit is OutlinedTextControl otc && e.ClickCount == 2)
+                        if (e.ClickCount == 2 && TryHandleDoubleClickEdit(manualHit, canvas))
                         {
-                            ShowTextEditor(otc, canvas);
-                            e.Handled = true;
-                            return true;
-                        }
-
-                        if (manualHit is SpeechBalloonControl balloon && e.ClickCount == 2)
-                        {
-                            ShowSpeechBalloonTextEditor(balloon, canvas);
                             e.Handled = true;
                             return true;
                         }
@@ -325,7 +315,7 @@ public class EditorSelectionController
                         _lastDragPoint = point;
                         UpdateSelectionHandles();
                         SelectionChanged?.Invoke(true);
-                        _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.GetClosedHandCursor());
+                        _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
                         e.Handled = true;
                         return true;
                     }
@@ -340,12 +330,79 @@ public class EditorSelectionController
         return false;
     }
 
+    private bool TryHandleDoubleClickEdit(Control hitTarget, Canvas canvas)
+    {
+        switch (hitTarget)
+        {
+            case OutlinedTextControl otc:
+                ShowTextEditor(otc, canvas);
+                return true;
+            case SpeechBalloonControl balloon:
+                ShowSpeechBalloonTextEditor(balloon, canvas);
+                return true;
+            case global::Avalonia.Controls.Image emojiControl when emojiControl.Tag is EmojiAnnotation emojiAnnotation:
+                ShowEmojiPickerForReplacement(emojiControl, emojiAnnotation);
+                return true;
+            case global::Avalonia.Controls.Image imageControl when imageControl.Tag is ImageAnnotation imageAnnotation && imageAnnotation is not EmojiAnnotation && imageAnnotation is not CursorAnnotation:
+                ShowImagePickerForReplacement(imageControl, imageAnnotation);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void ShowEmojiPickerForReplacement(global::Avalonia.Controls.Image emojiControl, EmojiAnnotation emojiAnnotation)
+    {
+        if (_view.DataContext is not MainViewModel vm)
+        {
+            return;
+        }
+
+        _selectedShape = emojiControl;
+        UpdateBoundsObserver();
+        UpdateSelectionHandles();
+        SelectionChanged?.Invoke(true);
+
+        vm.ShowEmojiPickerDialog(entry =>
+        {
+            emojiAnnotation.UnicodeSequence = entry.Unicode;
+            emojiAnnotation.DisplayName = entry.Name;
+            emojiAnnotation.ClearImage();
+
+            AnnotationVisualFactory.UpdateVisualControl(emojiControl, emojiAnnotation);
+            UpdateSelectionHandles();
+
+            if (_view.DataContext is MainViewModel activeVm)
+            {
+                activeVm.HasAnnotations = true;
+                activeVm.IsDirty = true;
+            }
+        });
+    }
+
+    private async void ShowImagePickerForReplacement(global::Avalonia.Controls.Image imageControl, ImageAnnotation imageAnnotation)
+    {
+        _selectedShape = imageControl;
+        UpdateBoundsObserver();
+        UpdateSelectionHandles();
+        SelectionChanged?.Invoke(true);
+
+        bool wasReplaced = await _view.ReplaceImageAnnotationFromFilePickerAsync(imageAnnotation, imageControl);
+        if (wasReplaced)
+        {
+            UpdateSelectionHandles();
+        }
+    }
+
     public bool OnPointerMoved(object sender, PointerEventArgs e)
     {
         var canvas = _view.FindControl<Canvas>("AnnotationCanvas");
         if (canvas == null) return false;
 
         var currentPoint = e.GetPosition(canvas);
+        _currentKeyModifiers = e.KeyModifiers;
+        _lastPointerCanvasPoint = currentPoint;
+        _hasLastPointerCanvasPoint = true;
 
         if (_isDraggingHandle && _draggedHandle != null && _selectedShape != null)
         {
@@ -364,14 +421,58 @@ public class EditorSelectionController
             return true;
         }
 
+        if (_view.DataContext is MainViewModel vm && ShouldIgnoreSelection(vm, e.KeyModifiers))
+        {
+            ClearHoverOutline();
+            return false;
+        }
+
         // Update hover state when not dragging
         UpdateHoverState(canvas, currentPoint);
 
         return false;
     }
 
+    internal void RefreshHoverFeedback(KeyModifiers keyModifiers)
+    {
+        _currentKeyModifiers = keyModifiers;
+
+        if (IsSelectionInteractionActive())
+        {
+            return;
+        }
+
+        UpdateSelectionHandles();
+
+        if (_view.DataContext is not MainViewModel vm)
+        {
+            return;
+        }
+
+        if (ShouldIgnoreSelection(vm, keyModifiers))
+        {
+            ClearHoverOutline();
+            return;
+        }
+
+        if (!_hasLastPointerCanvasPoint)
+        {
+            return;
+        }
+
+        var canvas = _view.FindControl<Canvas>("AnnotationCanvas");
+        if (canvas == null)
+        {
+            return;
+        }
+
+        UpdateHoverState(canvas, _lastPointerCanvasPoint);
+    }
+
     public bool OnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
+        _currentKeyModifiers = e.KeyModifiers;
+
         if (_isDraggingHandle)
         {
             FinalizeEmojiInteractiveRender();
@@ -456,19 +557,29 @@ public class EditorSelectionController
         }
 
         // Special handling for SpeechBalloonControl tail dragging
-        if (_selectedShape is SpeechBalloonControl balloonControl && balloonControl.Annotation is SpeechBalloonAnnotation balloon && handleTag == "BalloonTail")
+        if (_selectedShape is SpeechBalloonControl balloonControl && balloonControl.Annotation is SpeechBalloonAnnotation balloon && balloon.TailEnabled && handleTag == "BalloonTail")
         {
-            balloon.SetTailPoint(new SKPoint((float)currentPoint.X, (float)currentPoint.Y));
-            balloonControl.InvalidateVisual();
+            balloon.SetTailPoint(GetSpeechBalloonTailPoint(balloon, currentPoint));
+            AnnotationVisualFactory.UpdateVisualControl(
+                balloonControl,
+                balloon,
+                AnnotationVisualMode.Persisted,
+                _view.EditorCore.CanvasSize.Width,
+                _view.EditorCore.CanvasSize.Height);
             _startPoint = currentPoint;
             UpdateSelectionHandles();
             return;
         }
 
-        if (_selectedShape is StepControl stepControl && stepControl.Annotation is NumberAnnotation number && handleTag == "StepTail")
+        if (_selectedShape is StepControl stepControl && stepControl.Annotation is NumberAnnotation number && number.TailEnabled && handleTag == "StepTail")
         {
             number.SetTailPoint(new SKPoint((float)currentPoint.X, (float)currentPoint.Y));
-            stepControl.InvalidateVisual();
+            AnnotationVisualFactory.UpdateVisualControl(
+                stepControl,
+                number,
+                AnnotationVisualMode.Persisted,
+                _view.EditorCore.CanvasSize.Width,
+                _view.EditorCore.CanvasSize.Height);
             _startPoint = currentPoint;
             UpdateSelectionHandles();
             return;
@@ -481,6 +592,23 @@ public class EditorSelectionController
             ApplyRotationToSelectedShape(currentPoint, rotatableAnnotation, isShiftHeld);
             _startPoint = currentPoint;
             UpdateSelectionHandles();
+            return;
+        }
+
+        if (TryGetRotatableAnnotation(_selectedShape, out Annotation? resizableRotatedAnnotation)
+            && resizableRotatedAnnotation is not null
+            && resizableRotatedAnnotation is not EmojiAnnotation
+            && resizableRotatedAnnotation.RotationAngle != 0
+            && TryResizeRotatedAnnotation(resizableRotatedAnnotation, currentPoint, handleTag))
+        {
+            _startPoint = currentPoint;
+            UpdateSelectionHandles();
+
+            if (_selectedShape?.Tag is BaseEffectAnnotation)
+            {
+                RequestUpdateEffect?.Invoke(_selectedShape);
+            }
+
             return;
         }
 
@@ -513,14 +641,7 @@ public class EditorSelectionController
             if (handleTag.Contains("Bottom")) newHeight = Math.Max(20, height + deltaY);
             else if (handleTag.Contains("Top")) { var change = Math.Min(height - 20, deltaY); newTop += change; newHeight -= change; }
 
-            resizeBalloon.StartPoint = ToSKPoint(new Point(newLeft, newTop));
-            resizeBalloon.EndPoint = ToSKPoint(new Point(newLeft + newWidth, newTop + newHeight));
-
-            Canvas.SetLeft(resizeBalloonControl, newLeft);
-            Canvas.SetTop(resizeBalloonControl, newTop);
-            resizeBalloonControl.Width = newWidth;
-            resizeBalloonControl.Height = newHeight;
-            resizeBalloonControl.InvalidateVisual();
+            ApplyResizedBounds(resizeBalloon, newLeft, newTop, newWidth, newHeight);
 
             _startPoint = currentPoint;
             UpdateSelectionHandles();
@@ -602,76 +723,13 @@ public class EditorSelectionController
 
         const double minSize = 16;
 
-        var bounds = GetLogicalRect(imageControl);
-        double left = bounds.Left;
-        double top = bounds.Top;
-        double right = bounds.Right;
-        double bottom = bounds.Bottom;
-        double centerX = bounds.Center.X;
-        double centerY = bounds.Center.Y;
-        Point workingPoint = annotation.RotationAngle != 0
-            ? UnrotatePoint(currentPoint, bounds.Center, annotation.RotationAngle)
-            : currentPoint;
-
-        double newLeft = left;
-        double newTop = top;
-        double newSize;
-
-        if (handleTag.Contains("Left") && handleTag.Contains("Top"))
-        {
-            newSize = Math.Max(minSize, Math.Max(right - workingPoint.X, bottom - workingPoint.Y));
-            newLeft = right - newSize;
-            newTop = bottom - newSize;
-        }
-        else if (handleTag.Contains("Right") && handleTag.Contains("Top"))
-        {
-            newSize = Math.Max(minSize, Math.Max(workingPoint.X - left, bottom - workingPoint.Y));
-            newLeft = left;
-            newTop = bottom - newSize;
-        }
-        else if (handleTag.Contains("Left") && handleTag.Contains("Bottom"))
-        {
-            newSize = Math.Max(minSize, Math.Max(right - workingPoint.X, workingPoint.Y - top));
-            newLeft = right - newSize;
-            newTop = top;
-        }
-        else if (handleTag.Contains("Right") && handleTag.Contains("Bottom"))
-        {
-            newSize = Math.Max(minSize, Math.Max(workingPoint.X - left, workingPoint.Y - top));
-            newLeft = left;
-            newTop = top;
-        }
-        else if (handleTag.Contains("Left"))
-        {
-            newSize = Math.Max(minSize, right - workingPoint.X);
-            newLeft = right - newSize;
-            newTop = centerY - (newSize / 2.0);
-        }
-        else if (handleTag.Contains("Right"))
-        {
-            newSize = Math.Max(minSize, workingPoint.X - left);
-            newLeft = left;
-            newTop = centerY - (newSize / 2.0);
-        }
-        else if (handleTag.Contains("Top"))
-        {
-            newSize = Math.Max(minSize, bottom - workingPoint.Y);
-            newLeft = centerX - (newSize / 2.0);
-            newTop = bottom - newSize;
-        }
-        else if (handleTag.Contains("Bottom"))
-        {
-            newSize = Math.Max(minSize, workingPoint.Y - top);
-            newLeft = centerX - (newSize / 2.0);
-            newTop = top;
-        }
-        else
+        if (!TryGetRotatedSquareResizeBounds(annotation, currentPoint, handleTag, minSize, out Rect resizedBounds))
         {
             return;
         }
 
-        annotation.StartPoint = new SKPoint((float)newLeft, (float)newTop);
-        annotation.EndPoint = new SKPoint((float)(newLeft + newSize), (float)(newTop + newSize));
+        annotation.StartPoint = new SKPoint((float)resizedBounds.Left, (float)resizedBounds.Top);
+        annotation.EndPoint = new SKPoint((float)resizedBounds.Right, (float)resizedBounds.Bottom);
         _pendingEmojiExactRender = true;
 
         AnnotationVisualFactory.UpdateVisualControl(
@@ -681,6 +739,189 @@ public class EditorSelectionController
             _view.EditorCore.CanvasSize.Width,
             _view.EditorCore.CanvasSize.Height,
             useInteractiveEmojiRender: true);
+    }
+
+    private bool TryGetRotatedSquareResizeBounds(Annotation annotation, Point currentPoint, string handleTag, double minSize, out Rect resizedBounds)
+    {
+        resizedBounds = default;
+
+        if (_selectedShape == null || !TryGetHandleDirection(handleTag, out int horizontalDirection, out int verticalDirection))
+        {
+            return false;
+        }
+
+        var bounds = GetLogicalRect(_selectedShape);
+        double size = Math.Max(bounds.Width, bounds.Height);
+        if (size <= 0)
+        {
+            return false;
+        }
+
+        Point origin = default;
+        Point localCenter = UnrotatePoint(bounds.Center, origin, annotation.RotationAngle);
+        Point localPointer = UnrotatePoint(currentPoint, origin, annotation.RotationAngle);
+        double halfSize = size / 2.0;
+        double newLocalCenterX = localCenter.X;
+        double newLocalCenterY = localCenter.Y;
+        double newSize;
+
+        if (horizontalDirection != 0 && verticalDirection != 0)
+        {
+            double anchorX = localCenter.X - (horizontalDirection * halfSize);
+            double anchorY = localCenter.Y - (verticalDirection * halfSize);
+            double sizeFromX = horizontalDirection < 0 ? anchorX - localPointer.X : localPointer.X - anchorX;
+            double sizeFromY = verticalDirection < 0 ? anchorY - localPointer.Y : localPointer.Y - anchorY;
+
+            newSize = Math.Max(minSize, Math.Max(sizeFromX, sizeFromY));
+            double draggedX = anchorX + (horizontalDirection * newSize);
+            double draggedY = anchorY + (verticalDirection * newSize);
+            newLocalCenterX = (anchorX + draggedX) / 2.0;
+            newLocalCenterY = (anchorY + draggedY) / 2.0;
+        }
+        else if (horizontalDirection != 0)
+        {
+            double anchorX = localCenter.X - (horizontalDirection * halfSize);
+            double sizeFromX = horizontalDirection < 0 ? anchorX - localPointer.X : localPointer.X - anchorX;
+
+            newSize = Math.Max(minSize, sizeFromX);
+            double draggedX = anchorX + (horizontalDirection * newSize);
+            newLocalCenterX = (anchorX + draggedX) / 2.0;
+        }
+        else if (verticalDirection != 0)
+        {
+            double anchorY = localCenter.Y - (verticalDirection * halfSize);
+            double sizeFromY = verticalDirection < 0 ? anchorY - localPointer.Y : localPointer.Y - anchorY;
+
+            newSize = Math.Max(minSize, sizeFromY);
+            double draggedY = anchorY + (verticalDirection * newSize);
+            newLocalCenterY = (anchorY + draggedY) / 2.0;
+        }
+        else
+        {
+            return false;
+        }
+
+        Point newWorldCenter = RotatePoint(new Point(newLocalCenterX, newLocalCenterY), origin, annotation.RotationAngle);
+        resizedBounds = new Rect(newWorldCenter.X - (newSize / 2.0), newWorldCenter.Y - (newSize / 2.0), newSize, newSize);
+        return true;
+    }
+
+    private bool TryResizeRotatedAnnotation(Annotation annotation, Point currentPoint, string handleTag)
+    {
+        if (_selectedShape == null || !TryGetHandleDirection(handleTag, out int horizontalDirection, out int verticalDirection))
+        {
+            return false;
+        }
+
+        var bounds = GetLogicalRect(_selectedShape);
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            return false;
+        }
+
+        double minWidth = annotation is TextAnnotation ? 10 : 1;
+        double minHeight = annotation is TextAnnotation ? 10 : 1;
+        Point origin = default;
+
+        // Project the drag point into the annotation's local axes so resize follows the rotated frame.
+        Point localCenter = UnrotatePoint(bounds.Center, origin, annotation.RotationAngle);
+        Point localPointer = UnrotatePoint(currentPoint, origin, annotation.RotationAngle);
+
+        double halfWidth = bounds.Width / 2.0;
+        double halfHeight = bounds.Height / 2.0;
+        double anchorX = localCenter.X - (horizontalDirection * halfWidth);
+        double anchorY = localCenter.Y - (verticalDirection * halfHeight);
+        double newLocalCenterX = localCenter.X;
+        double newLocalCenterY = localCenter.Y;
+        double newWidth = bounds.Width;
+        double newHeight = bounds.Height;
+
+        if (horizontalDirection != 0)
+        {
+            double clampedPointerX = horizontalDirection < 0
+                ? Math.Min(localPointer.X, anchorX - minWidth)
+                : Math.Max(localPointer.X, anchorX + minWidth);
+
+            newWidth = Math.Abs(anchorX - clampedPointerX);
+            newLocalCenterX = (anchorX + clampedPointerX) / 2.0;
+        }
+
+        if (verticalDirection != 0)
+        {
+            double clampedPointerY = verticalDirection < 0
+                ? Math.Min(localPointer.Y, anchorY - minHeight)
+                : Math.Max(localPointer.Y, anchorY + minHeight);
+
+            newHeight = Math.Abs(anchorY - clampedPointerY);
+            newLocalCenterY = (anchorY + clampedPointerY) / 2.0;
+        }
+
+        Point newWorldCenter = RotatePoint(new Point(newLocalCenterX, newLocalCenterY), origin, annotation.RotationAngle);
+        ApplyResizedBounds(annotation, newWorldCenter.X - (newWidth / 2.0), newWorldCenter.Y - (newHeight / 2.0), newWidth, newHeight);
+        return true;
+    }
+
+    private void ApplyResizedBounds(Annotation annotation, double left, double top, double width, double height)
+    {
+        if (_selectedShape == null)
+        {
+            return;
+        }
+
+        var previousBounds = annotation.GetBounds();
+        var newBounds = new SKRect((float)left, (float)top, (float)(left + width), (float)(top + height));
+
+        Canvas.SetLeft(_selectedShape, left);
+        Canvas.SetTop(_selectedShape, top);
+        _selectedShape.Width = Math.Max(1, width);
+        _selectedShape.Height = Math.Max(1, height);
+
+        annotation.StartPoint = new SKPoint((float)left, (float)top);
+        annotation.EndPoint = new SKPoint((float)(left + width), (float)(top + height));
+
+        if (annotation is SpeechBalloonAnnotation balloon)
+        {
+            UpdateSpeechBalloonTailForResize(balloon, previousBounds, newBounds);
+        }
+
+        if (annotation.RotationAngle != 0)
+        {
+            _selectedShape.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            _selectedShape.RenderTransform = new RotateTransform(annotation.RotationAngle);
+        }
+
+        AnnotationVisualFactory.UpdateVisualControl(
+            _selectedShape,
+            annotation,
+            AnnotationVisualMode.Persisted,
+            _view.EditorCore.CanvasSize.Width,
+            _view.EditorCore.CanvasSize.Height);
+
+        _selectedShape.InvalidateVisual();
+        _selectedShape.InvalidateMeasure();
+    }
+
+    private static void UpdateSpeechBalloonTailForResize(SpeechBalloonAnnotation annotation, SKRect previousBounds, SKRect newBounds)
+    {
+        if (!annotation.HasTailPoint || previousBounds.Width <= 0 || previousBounds.Height <= 0)
+        {
+            return;
+        }
+
+        var tailPoint = annotation.GetEffectiveTailPoint();
+        float scaleX = newBounds.Width / previousBounds.Width;
+        float scaleY = newBounds.Height / previousBounds.Height;
+
+        annotation.SetTailPoint(new SKPoint(
+            newBounds.Left + ((tailPoint.X - previousBounds.Left) * scaleX),
+            newBounds.Top + ((tailPoint.Y - previousBounds.Top) * scaleY)));
+    }
+
+    private static bool TryGetHandleDirection(string handleTag, out int horizontalDirection, out int verticalDirection)
+    {
+        horizontalDirection = handleTag.Contains("Left") ? -1 : handleTag.Contains("Right") ? 1 : 0;
+        verticalDirection = handleTag.Contains("Top") ? -1 : handleTag.Contains("Bottom") ? 1 : 0;
+        return horizontalDirection != 0 || verticalDirection != 0;
     }
 
     public void MoveSelectedShape(double deltaX, double deltaY)
@@ -835,6 +1076,8 @@ public class EditorSelectionController
 
         if (_selectedShape == null) return;
 
+        if (ShouldSuppressSelectionHandles()) return;
+
         if (_selectedShape is global::Avalonia.Controls.Shapes.Path segmentPath
             && segmentPath.Tag is ICurvedSegmentAnnotation curvedSegment)
         {
@@ -853,39 +1096,50 @@ public class EditorSelectionController
 
         if (_selectedShape is SpeechBalloonControl balloonControl && balloonControl.Annotation is SpeechBalloonAnnotation balloon)
         {
-            var balloonRect = GetLogicalRect(_selectedShape);
-            var balloonLeft = balloonRect.Left;
-            var balloonTop = balloonRect.Top;
-            var balloonWidth = balloonRect.Width;
-            var balloonHeight = balloonRect.Height;
-
-            CreateHandle(balloonLeft, balloonTop, "TopLeft");
-            CreateHandle(balloonLeft + balloonWidth / 2, balloonTop, "TopCenter");
-            CreateHandle(balloonLeft + balloonWidth, balloonTop, "TopRight");
-            CreateHandle(balloonLeft + balloonWidth, balloonTop + balloonHeight / 2, "RightCenter");
-            CreateHandle(balloonLeft + balloonWidth, balloonTop + balloonHeight, "BottomRight");
-            CreateHandle(balloonLeft + balloonWidth / 2, balloonTop + balloonHeight, "BottomCenter");
-            CreateHandle(balloonLeft, balloonTop + balloonHeight, "BottomLeft");
-            CreateHandle(balloonLeft, balloonTop + balloonHeight / 2, "LeftCenter");
-
-            if (!balloon.HasTailPoint)
+            if (balloon.TailEnabled)
             {
-                balloon.EnsureTailPointInitialized();
-                balloonControl.InvalidateVisual();
+                if (!balloon.HasTailPoint)
+                {
+                    balloon.EnsureTailPointInitialized();
+                    AnnotationVisualFactory.UpdateVisualControl(
+                        balloonControl,
+                        balloon,
+                        AnnotationVisualMode.Persisted,
+                        _view.EditorCore.CanvasSize.Width,
+                        _view.EditorCore.CanvasSize.Height);
+                }
             }
 
-            var tailPoint = balloon.GetEffectiveTailPoint();
-            var tailX = (double)tailPoint.X;
-            var tailY = (double)tailPoint.Y;
-            CreateHandle(tailX, tailY, "BalloonTail");
+            if (TryCreateRotatableSelectionHandles(balloonControl, overlay))
+            {
+                if (balloon.TailEnabled)
+                {
+                    Point rotatedTailHandle = GetSpeechBalloonTailHandlePoint(balloon);
+                    CreateHandle(rotatedTailHandle.X, rotatedTailHandle.Y, "BalloonTail");
+                }
+
+                UpdateHoverOutline();
+                return;
+            }
+
             UpdateHoverOutline();
             return;
         }
 
         if (_selectedShape is StepControl stepControl && stepControl.Annotation is NumberAnnotation number)
         {
-            var tailHandlePoint = number.GetTailHandlePoint();
-            CreateHandle(tailHandlePoint.X, tailHandlePoint.Y, "StepTail");
+            if (number.TailEnabled)
+            {
+                var tailHandlePoint = number.GetTailHandlePoint();
+                CreateHandle(tailHandlePoint.X, tailHandlePoint.Y, "StepTail");
+            }
+
+            UpdateHoverOutline();
+            return;
+        }
+
+        if (_selectedShape is global::Avalonia.Controls.Image { Tag: CursorAnnotation })
+        {
             UpdateHoverOutline();
             return;
         }
@@ -1013,13 +1267,29 @@ public class EditorSelectionController
         {
             StartPoint = ToOverlayPoint(topCenter),
             EndPoint = ToOverlayPoint(rotateHandlePoint),
-            Stroke = new SolidColorBrush(Color.FromRgb(30, 144, 255)),
-            StrokeThickness = 1.5,
-            StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 4 },
+            Stroke = Brushes.Black,
+            StrokeThickness = 1,
+            StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 3, 3 },
             IsHitTestVisible = false
         };
+        _rotationLine.SetValue(Panel.ZIndexProperty, 1);
+
+        var rotationLineWhite = new global::Avalonia.Controls.Shapes.Line
+        {
+            StartPoint = ToOverlayPoint(topCenter),
+            EndPoint = ToOverlayPoint(rotateHandlePoint),
+            Stroke = Brushes.White,
+            StrokeThickness = 1,
+            StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 3, 3 },
+            StrokeDashOffset = 3,
+            IsHitTestVisible = false
+        };
+        rotationLineWhite.SetValue(Panel.ZIndexProperty, 1);
+
         overlay.Children.Add(_rotationLine);
+        overlay.Children.Add(rotationLineWhite);
         _selectionHandles.Add(_rotationLine);
+        _selectionHandles.Add(rotationLineWhite);
 
         CreateHandle(rotateHandlePoint.X, rotateHandlePoint.Y, "Rotate");
         UpdateHoverOutline();
@@ -1030,11 +1300,30 @@ public class EditorSelectionController
     {
         switch (control)
         {
+            case SpeechBalloonControl { Annotation: SpeechBalloonAnnotation balloonAnnotation }:
+                annotation = balloonAnnotation;
+                return true;
+            case global::Avalonia.Controls.Shapes.Rectangle { Tag: BaseEffectAnnotation effectAnnotation }:
+                annotation = effectAnnotation;
+                return true;
+            case global::Avalonia.Controls.Shapes.Rectangle { Tag: RectangleAnnotation rectangleAnnotation }
+                when rectangleAnnotation is not SmartEraserAnnotation:
+                annotation = rectangleAnnotation;
+                return true;
+            case global::Avalonia.Controls.Shapes.Ellipse { Tag: EllipseAnnotation ellipseAnnotation }:
+                annotation = ellipseAnnotation;
+                return true;
             case OutlinedTextControl { Tag: TextAnnotation textAnnotation }:
                 annotation = textAnnotation;
                 return true;
             case global::Avalonia.Controls.Image { Tag: EmojiAnnotation emojiAnnotation }:
                 annotation = emojiAnnotation;
+                return true;
+            case global::Avalonia.Controls.Image { Tag: CursorAnnotation }:
+                annotation = null;
+                return false;
+            case global::Avalonia.Controls.Image { Tag: ImageAnnotation imageAnnotation }:
+                annotation = imageAnnotation;
                 return true;
             default:
                 annotation = null;
@@ -1070,6 +1359,11 @@ public class EditorSelectionController
             AnnotationVisualMode.Persisted,
             _view.EditorCore.CanvasSize.Width,
             _view.EditorCore.CanvasSize.Height);
+
+        if (annotation is BaseEffectAnnotation)
+        {
+            RequestUpdateEffect?.Invoke(_selectedShape);
+        }
     }
 
     private static Point RotatePoint(Point point, Point center, double angleDeg)
@@ -1092,6 +1386,35 @@ public class EditorSelectionController
     private static Point UnrotatePoint(Point point, Point center, double angleDeg)
     {
         return RotatePoint(point, center, -angleDeg);
+    }
+
+    private static Point GetSpeechBalloonTailHandlePoint(SpeechBalloonAnnotation annotation)
+    {
+        var tailPoint = annotation.GetEffectiveTailPoint();
+        Point handlePoint = new(tailPoint.X, tailPoint.Y);
+
+        if (annotation.RotationAngle == 0)
+        {
+            return handlePoint;
+        }
+
+        var bounds = annotation.GetBounds();
+        Point center = new(bounds.MidX, bounds.MidY);
+        return RotatePoint(handlePoint, center, annotation.RotationAngle);
+    }
+
+    private static SKPoint GetSpeechBalloonTailPoint(SpeechBalloonAnnotation annotation, Point visualPoint)
+    {
+        Point unrotatedPoint = visualPoint;
+
+        if (annotation.RotationAngle != 0)
+        {
+            var bounds = annotation.GetBounds();
+            Point center = new(bounds.MidX, bounds.MidY);
+            unrotatedPoint = UnrotatePoint(visualPoint, center, annotation.RotationAngle);
+        }
+
+        return new SKPoint((float)unrotatedPoint.X, (float)unrotatedPoint.Y);
     }
 
     private void CreateHandle(double x, double y, string tag)
@@ -1119,6 +1442,7 @@ public class EditorSelectionController
                 Color = Color.FromArgb(100, 0, 0, 0)
             })
         };
+        handleBorder.SetValue(Panel.ZIndexProperty, 2);
 
         Canvas.SetLeft(handleBorder, ToOverlayCoordinate(x) - handleBorder.Width / 2);
         Canvas.SetTop(handleBorder, ToOverlayCoordinate(y) - handleBorder.Height / 2);
@@ -1135,8 +1459,8 @@ public class EditorSelectionController
     private Cursor GetSelectionHandleCursor()
     {
         return IsSelectionInteractionActive()
-            ? CursorAssetLoader.GetClosedHandCursor()
-            : CursorAssetLoader.GetOpenHandCursor();
+            ? _view.GetClosedHandCursor()
+            : _view.GetOpenHandCursor();
     }
 
     private void RefreshSelectionHandleCursors()
@@ -1156,7 +1480,7 @@ public class EditorSelectionController
     {
         if (IsSelectionInteractionActive())
         {
-            _view.ApplyInteractionCursor(CursorAssetLoader.GetClosedHandCursor());
+            _view.ApplyInteractionCursor(CursorAssetLoader.CustomCursorKind.ClosedHand);
         }
         else
         {
@@ -1174,8 +1498,8 @@ public class EditorSelectionController
         return vm.ActiveTool switch
         {
             EditorTool.Select => SelectToolCursor,
-            EditorTool.Crop or EditorTool.CutOut => CursorAssetLoader.GetCrosshairCursor(),
-            _ => CursorAssetLoader.GetCrosshairCursor()
+            EditorTool.Crop or EditorTool.CutOut => _view.GetCrosshairCursor(),
+            _ => _view.GetCrosshairCursor()
         };
     }
 
@@ -1195,10 +1519,11 @@ public class EditorSelectionController
         }
 
         var annotation = balloonControl.Annotation;
-        var balloonLeft = Canvas.GetLeft(balloonControl);
-        var balloonTop = Canvas.GetTop(balloonControl);
-        var balloonWidth = balloonControl.Width;
-        var balloonHeight = balloonControl.Height;
+        var balloonRect = GetLogicalRect(balloonControl);
+        var balloonLeft = balloonRect.Left;
+        var balloonTop = balloonRect.Top;
+        var balloonWidth = balloonRect.Width;
+        var balloonHeight = balloonRect.Height;
 
         // Check if balloon is too small (e.g. user just clicked without dragging)
         if (balloonWidth < 50 || balloonHeight < 30)
@@ -1206,22 +1531,25 @@ public class EditorSelectionController
             balloonWidth = Math.Max(balloonWidth, 200);
             balloonHeight = Math.Max(balloonHeight, 100);
 
-            balloonControl.Width = balloonWidth;
-            balloonControl.Height = balloonHeight;
-
             annotation.EndPoint = new SKPoint(
                 annotation.StartPoint.X + (float)balloonWidth,
                 annotation.StartPoint.Y + (float)balloonHeight
             );
 
             // Fix Tail Point if it was at 0,0 or default
-            if (!annotation.HasTailPoint ||
-               (Math.Abs(annotation.TailPoint.X - annotation.StartPoint.X) < 1 && Math.Abs(annotation.TailPoint.Y - annotation.StartPoint.Y) < 1))
+            if (annotation.TailEnabled &&
+                (!annotation.HasTailPoint ||
+                (Math.Abs(annotation.TailPoint.X - annotation.StartPoint.X) < 1 && Math.Abs(annotation.TailPoint.Y - annotation.StartPoint.Y) < 1)))
             {
                 annotation.SetTailPoint(annotation.GetDefaultTailPoint());
             }
 
-            balloonControl.InvalidateVisual();
+            AnnotationVisualFactory.UpdateVisualControl(
+                balloonControl,
+                annotation,
+                AnnotationVisualMode.Persisted,
+                _view.EditorCore.CanvasSize.Width,
+                _view.EditorCore.CanvasSize.Height);
             UpdateSelectionHandles();
         }
 
@@ -1278,14 +1606,17 @@ public class EditorSelectionController
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(0), // No corner radius needed if no border/background match
             Foreground = foregroundBrush,
-            CaretBrush = foregroundBrush,
             FontSize = annotation.FontSize,
             FontFamily = new Avalonia.Media.FontFamily(string.IsNullOrWhiteSpace(annotation.FontFamily) ? "Segoe UI" : annotation.FontFamily),
+            FontWeight = annotation.IsBold ? FontWeight.Bold : FontWeight.Normal,
+            FontStyle = annotation.IsItalic ? FontStyle.Italic : FontStyle.Normal,
             Padding = new Thickness(12),
-            TextAlignment = TextAlignment.Center,
+            TextAlignment = TextHorizontalAlignmentHelper.ToAvaloniaTextAlignment(annotation.HorizontalAlignment),
+            HorizontalContentAlignment = TextHorizontalAlignmentHelper.ToHorizontalContentAlignment(annotation.HorizontalAlignment),
             VerticalContentAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             AcceptsReturn = false,
-            TextWrapping = TextWrapping.Wrap
+            TextWrapping = TextWrapping.Wrap,
+            Tag = annotation
         };
 
         // ISSUE-FIX: Override theme resources to ensure Focus state doesn't revert to White background
@@ -1305,11 +1636,7 @@ public class EditorSelectionController
         // But AnnotationCanvas is usually below Overlay.
         // We can't put TextBox in Overlay because Overlay is for handles.
         textBox.SetValue(Panel.ZIndexProperty, 9999);
-
-        Canvas.SetLeft(textBox, ToOverlayCoordinate(balloonLeft));
-        Canvas.SetTop(textBox, ToOverlayCoordinate(balloonTop));
-        textBox.Width = balloonWidth;
-        textBox.Height = balloonHeight;
+        ApplySpeechBalloonTextEditorLayout(textBox, annotation, balloonLeft, balloonTop, balloonWidth, balloonHeight);
 
         textBox.LostFocus += (s, args) =>
         {
@@ -1446,6 +1773,19 @@ public class EditorSelectionController
         }
     }
 
+    private static bool ShouldIgnoreSelection(MainViewModel vm, KeyModifiers keyModifiers)
+    {
+        return vm.ActiveTool != EditorTool.Select && keyModifiers.HasFlag(KeyModifiers.Control);
+    }
+
+    private bool ShouldSuppressSelectionHandles()
+    {
+        return !IsSelectionInteractionActive()
+            && _selectedShape != null
+            && _view.DataContext is MainViewModel vm
+            && ShouldIgnoreSelection(vm, _currentKeyModifiers);
+    }
+
     public Control? HitTestShape(Canvas canvas, Point currentPoint)
     {
         // Iterate through canvas children in reverse (top-most first)
@@ -1461,7 +1801,7 @@ public class EditorSelectionController
 
             if (child is SpotlightControl sc && sc.Annotation is SpotlightAnnotation sa)
             {
-                if (sa.GetBounds().Contains(ToSKPoint(currentPoint))) return sc;
+                if (sa.HitTest(ToSKPoint(currentPoint))) return sc;
                 continue;
             }
 
@@ -1692,8 +2032,11 @@ public class EditorSelectionController
 
         if (width <= 0 || height <= 0) return;
 
-        // 3. Ellipse Outline (for Ellipse and Step/Number)
-        if (_hoveredShape is Ellipse || (_hoveredShape is StepControl hoveredStepControl && hoveredStepControl.Annotation is NumberAnnotation hoveredNumberAnnotation && !hoveredNumberAnnotation.IsTailVisible()))
+        // 3. Ellipse Outline (for Ellipse, Step/Number, and ellipse effect regions)
+        if (_hoveredShape is Ellipse ||
+            (_hoveredShape?.Tag is MagnifyAnnotation { IsEllipse: true }) ||
+            (_hoveredShape is SpotlightControl { Annotation.IsEllipse: true }) ||
+            (_hoveredShape is StepControl hoveredStepControl && hoveredStepControl.Annotation is NumberAnnotation hoveredNumberAnnotation && !hoveredNumberAnnotation.IsTailVisible()))
         {
             if (_hoverEllipseBlack == null)
             {
@@ -1873,6 +2216,10 @@ public class EditorSelectionController
         // Update Font Size
         _balloonTextEditor.FontSize = annotation.FontSize;
         _balloonTextEditor.FontFamily = new Avalonia.Media.FontFamily(string.IsNullOrWhiteSpace(annotation.FontFamily) ? "Segoe UI" : annotation.FontFamily);
+        _balloonTextEditor.FontWeight = annotation.IsBold ? FontWeight.Bold : FontWeight.Normal;
+        _balloonTextEditor.FontStyle = annotation.IsItalic ? FontStyle.Italic : FontStyle.Normal;
+        _balloonTextEditor.TextAlignment = TextHorizontalAlignmentHelper.ToAvaloniaTextAlignment(annotation.HorizontalAlignment);
+        _balloonTextEditor.HorizontalContentAlignment = TextHorizontalAlignmentHelper.ToHorizontalContentAlignment(annotation.HorizontalAlignment);
 
         // Re-execute color logic (matching ShowSpeechBalloonTextEditor logic)
         IBrush foregroundBrush = new SolidColorBrush(Avalonia.Media.Color.Parse(annotation.StrokeColor));
@@ -1912,7 +2259,6 @@ public class EditorSelectionController
 
         _balloonTextEditor.Background = editorBackground;
         _balloonTextEditor.Foreground = foregroundBrush;
-        _balloonTextEditor.CaretBrush = foregroundBrush;
 
         // Update resource overrides for Focus state
         _balloonTextEditor.Resources["TextControlBackground"] = editorBackground;
@@ -1925,6 +2271,33 @@ public class EditorSelectionController
         _balloonTextEditor.Resources["TextControlBorderBrush"] = Avalonia.Media.Brushes.Transparent;
         _balloonTextEditor.Resources["TextControlBorderBrushFocused"] = Avalonia.Media.Brushes.Transparent;
         _balloonTextEditor.Resources["TextControlBorderBrushPointerOver"] = Avalonia.Media.Brushes.Transparent;
+
+        var bodyBounds = annotation.GetBounds();
+        ApplySpeechBalloonTextEditorLayout(
+            _balloonTextEditor,
+            annotation,
+            bodyBounds.Left,
+            bodyBounds.Top,
+            bodyBounds.Width,
+            bodyBounds.Height);
+    }
+
+    private static void ApplySpeechBalloonTextEditorLayout(TextBox textBox, SpeechBalloonAnnotation annotation, double left, double top, double width, double height)
+    {
+        Canvas.SetLeft(textBox, ToOverlayCoordinate(left));
+        Canvas.SetTop(textBox, ToOverlayCoordinate(top));
+        textBox.Width = width;
+        textBox.Height = height;
+
+        if (annotation.RotationAngle != 0)
+        {
+            textBox.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            textBox.RenderTransform = new RotateTransform(annotation.RotationAngle);
+        }
+        else
+        {
+            textBox.RenderTransform = null;
+        }
     }
 
     private void ShowTextEditor(OutlinedTextControl textControl, Canvas canvas)
@@ -1968,11 +2341,12 @@ public class EditorSelectionController
             FontStyle = annotation.IsItalic ? FontStyle.Italic : FontStyle.Normal,
             Padding = new Thickness(4),
             AcceptsReturn = false,
-            TextAlignment = TextAlignment.Center,
-            HorizontalContentAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            TextAlignment = TextHorizontalAlignmentHelper.ToAvaloniaTextAlignment(annotation.HorizontalAlignment),
+            HorizontalContentAlignment = TextHorizontalAlignmentHelper.ToHorizontalContentAlignment(annotation.HorizontalAlignment),
             VerticalContentAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
-            MinWidth = 20
+            MinWidth = 20,
+            Tag = annotation
         };
 
         // Force Avalonia's internal text box states to be transparent

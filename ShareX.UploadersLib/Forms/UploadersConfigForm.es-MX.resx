@@ -120,34 +120,13 @@
   <data name="$this.Text" xml:space="preserve">
     <value>ShareX - Configuración de destinos</value>
   </data>
-  <data name="btnAmazonS3AccessKeyOpen.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnAmazonS3BucketNameOpen.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnAmazonS3StorageClassHelp.Text" xml:space="preserve">
-    <value>?</value>
-  </data>
-  <data name="btnAzureStoragePortal.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
   <data name="btnBoxRefreshFolders.Text" xml:space="preserve">
     <value>Actualizar lista de carpetas</value>
-  </data>
-  <data name="btnSFTPKeyLocationBrowse.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnFTPSCertificateLocationBrowse.Text" xml:space="preserve">
-    <value>...</value>
   </data>
   <data name="btnSharedFolderAdd.Text" xml:space="preserve">
     <value>Agregar</value>
   </data>
   <data name="btnFTPAdd.Text" xml:space="preserve">
-    <value>Agregar</value>
-  </data>
-  <data name="btnTwitterAdd.Text" xml:space="preserve">
     <value>Agregar</value>
   </data>
   <data name="lblCheveretoAPIKey.Text" xml:space="preserve">
@@ -165,9 +144,6 @@
   <data name="lblPuushAPIKey.Text" xml:space="preserve">
     <value>Clave de la API:</value>
   </data>
-  <data name="lblAdflyAPIKEY.Text" xml:space="preserve">
-    <value>Clave de la API:</value>
-  </data>
   <data name="lblPolrAPIKey.Text" xml:space="preserve">
     <value>Clave de la API:</value>
   </data>
@@ -176,9 +152,6 @@
   </data>
   <data name="lblPlikAPIKey.Text" xml:space="preserve">
     <value>Clave de la API:</value>
-  </data>
-  <data name="lblAdflyAPIUID.Text" xml:space="preserve">
-    <value>UID de la API:</value>
   </data>
   <data name="lblYourlsAPIURL.Text" xml:space="preserve">
     <value>Enlace de la API:</value>
@@ -219,9 +192,6 @@
   <data name="chImgurDescription.Text" xml:space="preserve">
     <value>Descripción</value>
   </data>
-  <data name="chPicasaDescription.Text" xml:space="preserve">
-    <value>Descripción</value>
-  </data>
   <data name="tpEmail.Text" xml:space="preserve">
     <value>Correo electrónico</value>
   </data>
@@ -243,9 +213,6 @@
   <data name="lblMediaFireEmail.Text" xml:space="preserve">
     <value>Correo electrónico:</value>
   </data>
-  <data name="lblMegaEmail.Text" xml:space="preserve">
-    <value>Correo electrónico:</value>
-  </data>
   <data name="lblPuushEmail.Text" xml:space="preserve">
     <value>Correo electrónico:</value>
   </data>
@@ -260,9 +227,6 @@
   </data>
   <data name="lblFTPFile.Text" xml:space="preserve">
     <value>Archivo:</value>
-  </data>
-  <data name="chPicasaID.Text" xml:space="preserve">
-    <value>ID</value>
   </data>
   <data name="chImgurID.Text" xml:space="preserve">
     <value>ID</value>
@@ -300,9 +264,6 @@
   <data name="btnPuushLogin.Text" xml:space="preserve">
     <value>Acceder</value>
   </data>
-  <data name="btnMegaLogin.Text" xml:space="preserve">
-    <value>Acceder</value>
-  </data>
   <data name="gbPlikLoginCredentials.Text" xml:space="preserve">
     <value>Datos de acceso</value>
   </data>
@@ -312,13 +273,7 @@
   <data name="colSeafileLibraryName.Text" xml:space="preserve">
     <value>Nombre</value>
   </data>
-  <data name="chPicasaName.Text" xml:space="preserve">
-    <value>Nombre</value>
-  </data>
   <data name="lblFTPName.Text" xml:space="preserve">
-    <value>Nombre:</value>
-  </data>
-  <data name="lblTwitterDescription.Text" xml:space="preserve">
     <value>Nombre:</value>
   </data>
   <data name="lblSeafilePassword.Text" xml:space="preserve">
@@ -360,9 +315,6 @@
   <data name="lblLocalhostrPassword.Text" xml:space="preserve">
     <value>Contraseña:</value>
   </data>
-  <data name="lblMegaPassword.Text" xml:space="preserve">
-    <value>Contraseña:</value>
-  </data>
   <data name="lblOwnCloudPassword.Text" xml:space="preserve">
     <value>Contraseña:</value>
   </data>
@@ -384,17 +336,11 @@
   <data name="txtSeafileUploadLocationRefresh.Text" xml:space="preserve">
     <value>Actualizar</value>
   </data>
-  <data name="btnMegaRefreshFolders.Text" xml:space="preserve">
-    <value>Actualizar</value>
-  </data>
   <data name="btnRefreshSeafileAccInfo.Text" xml:space="preserve">
     <value>Actualizar</value>
   </data>
   <data name="btnGoogleDriveRefreshFolders.Text" xml:space="preserve">
     <value>Actualizar lista de carpetas</value>
-  </data>
-  <data name="btnPicasaRefreshAlbumList.Text" xml:space="preserve">
-    <value>Actualizar lista de álbumes</value>
   </data>
   <data name="btnImgurRefreshAlbumList.Text" xml:space="preserve">
     <value>Actualizar lista de álbumes</value>
@@ -408,14 +354,8 @@
   <data name="btnPastebinRegister.Text" xml:space="preserve">
     <value>Crear cuenta...</value>
   </data>
-  <data name="btnMegaRegister.Text" xml:space="preserve">
-    <value>Crear cuenta...</value>
-  </data>
   <data name="btnSendSpaceRegister.Text" xml:space="preserve">
     <value>Crear cuenta...</value>
-  </data>
-  <data name="btnTwitterRemove.Text" xml:space="preserve">
-    <value>Eliminar</value>
   </data>
   <data name="btnFTPRemove.Text" xml:space="preserve">
     <value>Eliminar</value>
@@ -438,9 +378,6 @@
   <data name="lblPastebinLoginStatus.Text" xml:space="preserve">
     <value>Estado:</value>
   </data>
-  <data name="lblMegaStatusTitle.Text" xml:space="preserve">
-    <value>Estado:</value>
-  </data>
   <data name="btnFTPTest.Text" xml:space="preserve">
     <value>Probar</value>
   </data>
@@ -461,9 +398,6 @@
   </data>
   <data name="chGoogleDriveTitle.Text" xml:space="preserve">
     <value>Título</value>
-  </data>
-  <data name="btnTwitterNameUpdate.Text" xml:space="preserve">
-    <value>Actualizar</value>
   </data>
   <data name="lblMediaFirePath.Text" xml:space="preserve">
     <value>Ubicación de subida:</value>
@@ -716,12 +650,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
     <value></value>
     <comment>@Invariant</comment>
   </data>
-  <data name="cbSeafileIgnoreInvalidCert.Text" xml:space="preserve">
-    <value>Ignorar certificado SSL inválido</value>
-  </data>
-  <data name="cbTwitterSkipMessageBox.Text" xml:space="preserve">
-    <value>Ignorar cuadro para enviar mensaje</value>
-  </data>
   <data name="cbYouTubeUseShortenedLink.Text" xml:space="preserve">
     <value>Usar enlace acortado</value>
   </data>
@@ -740,12 +668,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="gbFTPAccount.Text" xml:space="preserve">
     <value>Cuenta</value>
   </data>
-  <data name="gbFTPS.Text" xml:space="preserve">
-    <value>FTPS</value>
-  </data>
-  <data name="gbJiraServer.Text" xml:space="preserve">
-    <value>Servidor Jira</value>
-  </data>
   <data name="gbPhotobucketAlbumPath.Text" xml:space="preserve">
     <value>Subir imágenes a</value>
   </data>
@@ -757,9 +679,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   </data>
   <data name="gbPlikSettings.Text" xml:space="preserve">
     <value>Otras configuraciones</value>
-  </data>
-  <data name="gbSFTP.Text" xml:space="preserve">
-    <value>SFTP</value>
   </data>
   <data name="grpSeafileAccInfo.Text" xml:space="preserve">
     <value>Información de cuenta</value>
@@ -869,38 +788,11 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="rbFTPTransferModeActive.Text" xml:space="preserve">
     <value>Activa</value>
   </data>
-  <data name="tpAdFly.Text" xml:space="preserve">
-    <value>adf.ly</value>
-  </data>
-  <data name="lblPicasaAlbumID.Text" xml:space="preserve">
-    <value>ID del álbum para subir (vacío para no subir álbum):</value>
-  </data>
-  <data name="tpAmazonS3.Text" xml:space="preserve">
-    <value>Amazon S3</value>
-  </data>
   <data name="lblPolrAPIHostname.Text" xml:space="preserve">
     <value>Enlace de la API: (ej. http://demo.polr.me/api/v2/action/shorten)</value>
   </data>
-  <data name="tpJira.Text" xml:space="preserve">
-    <value>Atlassian Jira</value>
-  </data>
   <data name="lblSeafileAuthToken.Text" xml:space="preserve">
     <value>Token de autenticación:</value>
-  </data>
-  <data name="tpAzureStorage.Text" xml:space="preserve">
-    <value>Azure Storage</value>
-  </data>
-  <data name="tpBitly.Text" xml:space="preserve">
-    <value>bit.ly</value>
-  </data>
-  <data name="tpChevereto.Text" xml:space="preserve">
-    <value>Chevereto</value>
-  </data>
-  <data name="lblMegaStatus.Text" xml:space="preserve">
-    <value>Configurado / No configurado</value>
-  </data>
-  <data name="tpBox.Text" xml:space="preserve">
-    <value>Box</value>
   </data>
   <data name="lblSeafileDaysToExpire.Text" xml:space="preserve">
     <value>Días para expirar:</value>
@@ -908,14 +800,8 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="lblPhotobucketDefaultAlbumName.Text" xml:space="preserve">
     <value>Nombre predefinido del álbum</value>
   </data>
-  <data name="lblTwitterDefaultMessage.Text" xml:space="preserve">
-    <value>Mensaje predefinido:</value>
-  </data>
   <data name="lblPushbulletDevices.Text" xml:space="preserve">
     <value>Dispositivo:</value>
-  </data>
-  <data name="tpDropbox.Text" xml:space="preserve">
-    <value>Dropbox</value>
   </data>
   <data name="lblOwnCloudHostExample.Text" xml:space="preserve">
     <value>Ejemplo: http://example.com/owncloud</value>
@@ -928,15 +814,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   </data>
   <data name="lblImgurThumbnailType.Text" xml:space="preserve">
     <value>Tipo de miniatura:</value>
-  </data>
-  <data name="lblJiraHost.Text" xml:space="preserve">
-    <value>Host:</value>
-  </data>
-  <data name="lblJiraIssuePrefix.Text" xml:space="preserve">
-    <value>Prefijo de incidencia de Jira:</value>
-  </data>
-  <data name="lblMegaFolder.Text" xml:space="preserve">
-    <value>Carpeta:</value>
   </data>
   <data name="lblPastebinPrivacy.Text" xml:space="preserve">
     <value>Privacidad:</value>
@@ -998,9 +875,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="lblYouTubePrivacyType.Text" xml:space="preserve">
     <value>Tipo de privacidad:</value>
   </data>
-  <data name="llAdflyLink.Text" xml:space="preserve">
-    <value>Puede encontrar sus clave de API y UID aquí</value>
-  </data>
   <data name="llPuushForgottenPassword.Text" xml:space="preserve">
     <value>Recuperar contraseña</value>
   </data>
@@ -1022,129 +896,8 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
     <value></value>
     <comment>@Invariant</comment>
   </data>
-  <data name="tpFirebaseDynamicLinks.Text" xml:space="preserve">
-    <value>Dynamic Links de Firebase</value>
-  </data>
-  <data name="tpFlickr.Text" xml:space="preserve">
-    <value>Flickr</value>
-  </data>
-  <data name="tpFTP.Text" xml:space="preserve">
-    <value>FTP / FTPS / SFTP</value>
-  </data>
-  <data name="tpGist.Text" xml:space="preserve">
-    <value>GitHub Gist</value>
-  </data>
-  <data name="tpGoogleCloudStorage.Text" xml:space="preserve">
-    <value>Google Cloud Storage</value>
-  </data>
-  <data name="tpGoogleDrive.Text" xml:space="preserve">
-    <value>Google Drive</value>
-  </data>
-  <data name="tpGooglePhotos.Text" xml:space="preserve">
-    <value>Google Photos</value>
-  </data>
-  <data name="tpHastebin.Text" xml:space="preserve">
-    <value>Hastebin</value>
-  </data>
-  <data name="tpHostr.Text" xml:space="preserve">
-    <value>Hostr</value>
-  </data>
-  <data name="tpImageShack.Text" xml:space="preserve">
-    <value>ImageShack</value>
-  </data>
-  <data name="tpImgur.Text" xml:space="preserve">
-    <value>Imgur</value>
-  </data>
-  <data name="tpLambda.Text" xml:space="preserve">
-    <value>Lambda</value>
-  </data>
-  <data name="tpLithiio.Text" xml:space="preserve">
-    <value>Lithiio</value>
-  </data>
-  <data name="tpMediaFire.Text" xml:space="preserve">
-    <value>MediaFire</value>
-  </data>
-  <data name="tpMega.Text" xml:space="preserve">
-    <value>Mega</value>
-  </data>
-  <data name="tpOneDrive.Text" xml:space="preserve">
-    <value>OneDrive</value>
-  </data>
-  <data name="tpOneTimeSecret.Text" xml:space="preserve">
-    <value>OneTimeSecret</value>
-  </data>
-  <data name="tpOtherUploaders.Text" xml:space="preserve">
-    <value>Otros servidores</value>
-  </data>
-  <data name="tpOwnCloud.Text" xml:space="preserve">
-    <value>ownCloud/Nextcloud</value>
-  </data>
-  <data name="tpPaste_ee.Text" xml:space="preserve">
-    <value>Paste.ee</value>
-  </data>
-  <data name="tpPastebin.Text" xml:space="preserve">
-    <value>Pastebin</value>
-  </data>
-  <data name="tpPastie.Text" xml:space="preserve">
-    <value>Pastie</value>
-  </data>
-  <data name="tpPhotobucket.Text" xml:space="preserve">
-    <value>Photobucket</value>
-  </data>
-  <data name="tpPlik.Text" xml:space="preserve">
-    <value>Plik</value>
-  </data>
-  <data name="tpPolr.Text" xml:space="preserve">
-    <value>Polr</value>
-  </data>
-  <data name="tpPomf.Text" xml:space="preserve">
-    <value>Pomf</value>
-  </data>
-  <data name="tpPushbullet.Text" xml:space="preserve">
-    <value>Pushbullet</value>
-  </data>
-  <data name="tpPuush.Text" xml:space="preserve">
-    <value>puush</value>
-  </data>
-  <data name="tpSeafile.Text" xml:space="preserve">
-    <value>Seafile</value>
-  </data>
-  <data name="tpSendSpace.Text" xml:space="preserve">
-    <value>SendSpace</value>
-  </data>
   <data name="tpSharedFolder.Text" xml:space="preserve">
     <value>Carpeta compartida</value>
-  </data>
-  <data name="tpStreamable.Text" xml:space="preserve">
-    <value>Streamable</value>
-  </data>
-  <data name="tpSul.Text" xml:space="preserve">
-    <value>s-ul</value>
-  </data>
-  <data name="tpTwitter.Text" xml:space="preserve">
-    <value>Twitter</value>
-  </data>
-  <data name="tpUpaste.Text" xml:space="preserve">
-    <value>uPaste</value>
-  </data>
-  <data name="tpVgyme.Text" xml:space="preserve">
-    <value>vgy.me</value>
-  </data>
-  <data name="tpYourls.Text" xml:space="preserve">
-    <value>YOURLS</value>
-  </data>
-  <data name="tpYouTube.Text" xml:space="preserve">
-    <value>YouTube</value>
-  </data>
-  <data name="txtJiraConfigHelp.Text" xml:space="preserve">
-    <value>Plantilla</value>
-  </data>
-  <data name="txtJiraHost.Text" xml:space="preserve">
-    <value></value>
-    <comment>@Invariant</comment>
-  </data>
-  <data name="txtJiraIssuePrefix.Text" xml:space="preserve">
-    <value>PROYECTO-</value>
   </data>
   <data name="lblAzureStorageURLPreviewLabel.Text" xml:space="preserve">
     <value>Vista previa de enlace:</value>
@@ -1160,21 +913,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   </data>
   <data name="lblB2UrlPreviewLabel.Text" xml:space="preserve">
     <value>Vista previa de enlace:</value>
-  </data>
-  <data name="lblTeknikAuthUrl.Text" xml:space="preserve">
-    <value>Enlace de acceso:</value>
-  </data>
-  <data name="lblTeknikPasteAPIUrl.Text" xml:space="preserve">
-    <value>Enlace de la API para pegar:</value>
-  </data>
-  <data name="lblTeknikUploadAPIUrl.Text" xml:space="preserve">
-    <value>Enlace de la API pata subir:</value>
-  </data>
-  <data name="lblTeknikUrlShortenerAPIUrl.Text" xml:space="preserve">
-    <value>Enlace de la API de acortador de enlaces:</value>
-  </data>
-  <data name="btnGooglePhotosCreateAlbum.Text" xml:space="preserve">
-    <value>Crear</value>
   </data>
   <data name="cbAmazonS3SignedPayload.Text" xml:space="preserve">
     <value>Carga útil firmada</value>
@@ -1194,17 +932,8 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="cbGoogleCloudStorageStripExtensionVideo.Text" xml:space="preserve">
     <value>Video</value>
   </data>
-  <data name="cbGooglePhotosIsPublic.Text" xml:space="preserve">
-    <value>Subida pública</value>
-  </data>
   <data name="cbOwnCloudAutoExpire.Text" xml:space="preserve">
     <value>Vida limitada a enlaces compartidos</value>
-  </data>
-  <data name="cbTeknikEncrypt.Text" xml:space="preserve">
-    <value>Encriptación en extremo del cliente</value>
-  </data>
-  <data name="cbTeknikGenDeleteKey.Text" xml:space="preserve">
-    <value>Generar clave de borrado</value>
   </data>
   <data name="gbGoogleCloudStorageAdvanced.Text" xml:space="preserve">
     <value>Avanzado</value>
@@ -1230,9 +959,6 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="lblGoogleCloudStorageStripExtension.Text" xml:space="preserve">
     <value>Eliminar extensión de archivo:</value>
   </data>
-  <data name="lblGooglePhotosCreateAlbumName.Text" xml:space="preserve">
-    <value>Nombre del álbum:</value>
-  </data>
   <data name="lblKuttAPIKey.Text" xml:space="preserve">
     <value>Clave de la API:</value>
   </data>
@@ -1245,19 +971,73 @@ Por ejemplo, si el bucket se llama bucket.example.com, la URL será http://bucke
   <data name="lblOwnCloudExpiryTime.Text" xml:space="preserve">
     <value>Caducidad (días):</value>
   </data>
-  <data name="lblTeknikExpiration.Text" xml:space="preserve">
-    <value>Caducidad:</value>
-  </data>
-  <data name="tpBackblazeB2.Text" xml:space="preserve">
-    <value>Backblaze B2</value>
-  </data>
-  <data name="tpKutt.Text" xml:space="preserve">
-    <value>Kutt</value>
-  </data>
-  <data name="tpTeknik.Text" xml:space="preserve">
-    <value>Teknik</value>
-  </data>
   <data name="cbOneDriveUseDirectLink.Text" xml:space="preserve">
     <value>Utilizar enlace directo</value>
+  </data>
+  <data name="lblPrivateBinPassword.Text" xml:space="preserve">
+    <value>Contraseña:</value>
+  </data>
+  <data name="lblPrivateBinUsername.Text" xml:space="preserve">
+    <value>Nombre de usuario:</value>
+  </data>
+  <data name="gbPrivateBinCredentials.Text" xml:space="preserve">
+    <value>Credenciales</value>
+  </data>
+  <data name="gbPrivateBinCredentials.ToolTip" xml:space="preserve">
+    <value>Algunos servidores pueden requerir autorización adicional</value>
+  </data>
+  <data name="lblKuttDomain.Text" xml:space="preserve">
+    <value>Dominio:</value>
+  </data>
+  <data name="lblZWSToken.Text" xml:space="preserve">
+    <value>Token:</value>
+  </data>
+  <data name="lblZWSURL.Text" xml:space="preserve">
+    <value>URL:</value>
+  </data>
+  <data name="lblBoxShareAccessLevel.Text" xml:space="preserve">
+    <value>Nivel de acceso del enlace compartido:</value>
+  </data>
+  <data name="lblAzureStorageCacheControl.Text" xml:space="preserve">
+    <value>Encabezado Cache-Control:</value>
+  </data>
+  <data name="cbOwnCloudAppendFileNameToURL.Text" xml:space="preserve">
+    <value>Append archivo name to URL</value>
+  </data>
+  <data name="cbSeafileCreateShareableURLRaw.Text" xml:space="preserve">
+    <value>Usar URL sin procesar</value>
+  </data>
+  <data name="cbPlikTTLUnit.Items" xml:space="preserve">
+    <value>días</value>
+  </data>
+  <data name="cbPlikTTLUnit.Items1" xml:space="preserve">
+    <value>horas</value>
+  </data>
+  <data name="cbPlikTTLUnit.Items2" xml:space="preserve">
+    <value>minutos</value>
+  </data>
+  <data name="cbPlikTTLUnit.Items3" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="lblYouTubePermissionsTip.Text" xml:space="preserve">
+    <value>Puedes revocar tu acceso en cualquier momento usando el enlace de abajo:</value>
+  </data>
+  <data name="cbYouTubeShowDialog.Text" xml:space="preserve">
+    <value>Mostrar diálogo de opciones de video</value>
+  </data>
+  <data name="lblPrivateBinCustomUrl.Text" xml:space="preserve">
+    <value>URL personalizada:</value>
+  </data>
+  <data name="lblPrivateBinExpiration.Text" xml:space="preserve">
+    <value>Vencimiento:</value>
+  </data>
+  <data name="lblPrivateBinFormat.Text" xml:space="preserve">
+    <value>Formato:</value>
+  </data>
+  <data name="lblPrivateBinPastePassword.Text" xml:space="preserve">
+    <value>Contraseña de pegado:</value>
+  </data>
+  <data name="cbPrivateBinBurnAfterReading.Text" xml:space="preserve">
+    <value>Destruir después de leer</value>
   </data>
 </root>

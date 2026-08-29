@@ -189,10 +189,10 @@ public partial class SchemaDrivenEffectDialog : UserControl, IEffectDialog
             _visualDebugUnsubscribes.Add(() => slider.PropertyChanged -= OnSliderPropertyChanged);
         }
 
-        int checkIndex = 0;
-        foreach (CheckBox check in this.GetVisualDescendants().OfType<CheckBox>())
+        int toggleIndex = 0;
+        foreach (ToggleSwitch toggle in this.GetVisualDescendants().OfType<ToggleSwitch>())
         {
-            object? dc = check.DataContext;
+            object? dc = toggle.DataContext;
             if (dc is not CheckboxParameterState)
             {
                 continue;
@@ -201,27 +201,27 @@ public partial class SchemaDrivenEffectDialog : UserControl, IEffectDialog
             string key = ((CheckboxParameterState)dc).Key;
             EditorServices.ReportDebug(
                 nameof(SchemaDrivenEffectDialog),
-                $"CheckBox[{checkIndex}] effectId={Definition.Id} key={key} inParameterStates={ParameterStates.Contains((EffectParameterState)dc)} IsChecked={check.IsChecked}");
+                $"ToggleSwitch[{toggleIndex}] effectId={Definition.Id} key={key} inParameterStates={ParameterStates.Contains((EffectParameterState)dc)} IsChecked={toggle.IsChecked}");
 
-            checkIndex++;
+            toggleIndex++;
 
             void OnCheckPropertyChanged(object? s, AvaloniaPropertyChangedEventArgs ev)
             {
-                if (ev.Property != CheckBox.IsCheckedProperty)
+                if (ev.Property.Name != nameof(ToggleSwitch.IsChecked))
                 {
                     return;
                 }
 
-                object? d = check.DataContext;
+                object? d = toggle.DataContext;
                 string k = d is CheckboxParameterState cb ? cb.Key : "?";
                 bool mv = d is CheckboxParameterState cb2 && cb2.Value;
                 EditorServices.ReportDebug(
                     nameof(SchemaDrivenEffectDialog),
-                    $"CheckBox IsChecked changed effectId={Definition.Id} key={k} controlIsChecked={check.IsChecked} modelValue={mv}");
+                    $"ToggleSwitch IsChecked changed effectId={Definition.Id} key={k} controlIsChecked={toggle.IsChecked} modelValue={mv}");
             }
 
-            check.PropertyChanged += OnCheckPropertyChanged;
-            _visualDebugUnsubscribes.Add(() => check.PropertyChanged -= OnCheckPropertyChanged);
+            toggle.PropertyChanged += OnCheckPropertyChanged;
+            _visualDebugUnsubscribes.Add(() => toggle.PropertyChanged -= OnCheckPropertyChanged);
         }
     }
 

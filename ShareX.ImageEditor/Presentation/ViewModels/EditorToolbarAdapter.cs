@@ -27,7 +27,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using ShareX.ImageEditor.Core.Abstractions;
 using ShareX.ImageEditor.Core.Annotations;
-using System.Collections.Generic;
+using ShareX.ImageEditor.Presentation.Controls;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -91,15 +91,49 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
         set => _viewModel.SelectedFontFamily = value;
     }
 
+    public TextHorizontalAlignment SelectedTextHorizontalAlignment
+    {
+        get => _viewModel.SelectedTextHorizontalAlignment;
+        set => _viewModel.SelectedTextHorizontalAlignment = value;
+    }
+
+    public BorderStyle SelectedBorderStyle
+    {
+        get => _viewModel.SelectedBorderStyle;
+        set => _viewModel.SelectedBorderStyle = value;
+    }
+
     public ArrowStyle SelectedArrowStyle
     {
         get => _viewModel.SelectedArrowStyle;
         set => _viewModel.SelectedArrowStyle = value;
     }
 
+    public CursorType SelectedCursorType
+    {
+        get => _viewModel.SelectedCursorType;
+        set => _viewModel.SelectedCursorType = value;
+    }
+
+    public StepType SelectedStepType
+    {
+        get => _viewModel.SelectedStepType;
+        set => _viewModel.SelectedStepType = value;
+    }
+
     public IReadOnlyList<string> AvailableFontFamilies => _viewModel.AvailableFontFamilies;
 
+    public IReadOnlyList<TextHorizontalAlignment> AvailableTextHorizontalAlignments => _viewModel.AvailableTextHorizontalAlignments;
+
+    public IReadOnlyList<BorderStyle> AvailableBorderStyles => _viewModel.AvailableBorderStyles;
+
     public IReadOnlyList<ArrowStyle> AvailableArrowStyles => _viewModel.AvailableArrowStyles;
+
+    public IReadOnlyList<CursorType> AvailableCursorTypes => _viewModel.AvailableCursorTypes;
+
+    public IReadOnlyList<int> AvailableStepStartNumbers => _viewModel.AvailableStepStartNumbers;
+
+    public IReadOnlyList<StepType> AvailableStepTypes => _viewModel.AvailableStepTypes;
 
     public int StrokeWidth
     {
@@ -119,6 +153,12 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
         set => _viewModel.FontSize = value;
     }
 
+    public int StepStartNumber
+    {
+        get => _viewModel.StepStartNumber;
+        set => _viewModel.StepStartNumber = value;
+    }
+
     public float EffectStrength
     {
         get => _viewModel.EffectStrength;
@@ -127,10 +167,60 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
 
     public float EffectStrengthMaximum => _viewModel.EffectStrengthMaximum;
 
+    public float SpotlightBlur
+    {
+        get => _viewModel.SpotlightBlur;
+        set => _viewModel.SpotlightBlur = value;
+    }
+
+    public float SpotlightBlurMaximum => _viewModel.SpotlightBlurMaximum;
+
     public bool ShadowEnabled
     {
         get => _viewModel.ShadowEnabled;
         set => _viewModel.ShadowEnabled = value;
+    }
+
+    public IBrush ShadowColorBrush
+    {
+        get => _viewModel.ShadowColorBrush;
+        set => _viewModel.ShadowColorBrush = value;
+    }
+
+    public double ShadowBlurRadius
+    {
+        get => _viewModel.ShadowBlurRadius;
+        set => _viewModel.ShadowBlurRadius = value;
+    }
+
+    public double ShadowOpacity
+    {
+        get => _viewModel.ShadowOpacity;
+        set => _viewModel.ShadowOpacity = value;
+    }
+
+    public double ShadowOffsetX
+    {
+        get => _viewModel.ShadowOffsetX;
+        set => _viewModel.ShadowOffsetX = value;
+    }
+
+    public double ShadowOffsetY
+    {
+        get => _viewModel.ShadowOffsetY;
+        set => _viewModel.ShadowOffsetY = value;
+    }
+
+    public bool SpeechBalloonTail
+    {
+        get => _viewModel.SpeechBalloonTail;
+        set => _viewModel.SpeechBalloonTail = value;
+    }
+
+    public bool EffectEllipse
+    {
+        get => _viewModel.EffectEllipse;
+        set => _viewModel.EffectEllipse = value;
     }
 
     public bool TextBold
@@ -143,12 +233,6 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
     {
         get => _viewModel.TextItalic;
         set => _viewModel.TextItalic = value;
-    }
-
-    public bool TextUnderline
-    {
-        get => _viewModel.TextUnderline;
-        set => _viewModel.TextUnderline = value;
     }
 
     public bool CanUndo => _viewModel.CanUndo;
@@ -169,17 +253,35 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
 
     public bool ShowFontSize => _viewModel.ShowFontSize;
 
+    public bool ShowStepStartNumber => _viewModel.ShowStepStartNumber;
+
+    public bool ShowStepType => _viewModel.ShowStepType;
+
+    public bool ShowTextHorizontalAlignment => _viewModel.ShowTextHorizontalAlignment;
+
     public bool ShowFontFamily => _viewModel.ShowFontFamily;
 
+    public bool ShowBorderStyle => _viewModel.ShowBorderStyle;
+
     public bool ShowArrowStyle => _viewModel.ShowArrowStyle;
+
+    public bool ShowCursorType => _viewModel.ShowCursorType;
 
     public bool ShowCornerRadius => _viewModel.ShowCornerRadius;
 
     public bool ShowStrength => _viewModel.ShowStrength;
 
+    public bool ShowSpotlightBlur => _viewModel.ShowSpotlightBlur;
+
     public bool ShowTextStyle => _viewModel.ShowTextStyle;
 
+    public bool ShowTextItalic => _viewModel.ShowTextItalic;
+
     public bool ShowShadow => _viewModel.ShowShadow;
+
+    public bool ShowSpeechBalloonTail => _viewModel.ShowSpeechBalloonTail;
+
+    public bool ShowEffectEllipse => _viewModel.ShowEffectEllipse;
 
     public bool ShowToolOptions => _viewModel.ShowToolOptionsSeparator;
 
@@ -220,6 +322,10 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
         set => _viewModel.IsEffectsPanelOpen = value;
     }
 
+    public bool IsEffectsButtonActive =>
+        _viewModel.IsEffectsPanelOpen &&
+        _viewModel.EffectsPanelContent is not EditorOptionsPanel;
+
     public double Zoom
     {
         get => _viewModel.Zoom;
@@ -240,9 +346,26 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
 
     public ICommand ToggleEffectsPanelCommand => _viewModel.ToggleEffectsPanelCommand;
 
+    public ICommand AutoCropImageCommand => _viewModel.AutoCropImageCommand;
+
+    public ICommand Rotate90ClockwiseCommand => _viewModel.Rotate90ClockwiseCommand;
+
+    public ICommand Rotate90CounterClockwiseCommand => _viewModel.Rotate90CounterClockwiseCommand;
+
+    public ICommand Rotate180Command => _viewModel.Rotate180Command;
+
+    public ICommand FlipHorizontalCommand => _viewModel.FlipHorizontalCommand;
+
+    public ICommand FlipVerticalCommand => _viewModel.FlipVerticalCommand;
+
     public bool ShowFileMenu => _viewModel.ShowFileMenu;
 
+    public bool ShowOptionsButton => _viewModel.ShowOptionsButton;
+
     public ReadOnlyObservableCollection<string> RecentImageFiles => _viewModel.RecentImageFiles;
+
+    public ReadOnlyObservableCollection<ToolbarCustomizationItemViewModel> ToolbarItems => _viewModel.ToolbarItems;
+    public ReadOnlyObservableCollection<ToolbarCustomizationItemViewModel> VisibleToolbarItems => _viewModel.VisibleToolbarItems;
 
     public bool HasRecentImageFiles => _viewModel.HasRecentImageFiles;
 
@@ -256,7 +379,11 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
 
     public ICommand SaveAsCommand => _viewModel.SaveAsCommand;
 
+    public ICommand OpenOptionsPanelCommand => _viewModel.OpenOptionsPanelCommand;
+
     public ICommand ExitEditorCommand => _viewModel.ExitEditorCommand;
+
+    public void ExecuteToolbarItem(ToolbarCustomizationItemViewModel item) => _viewModel.ExecuteToolbarItem(item);
 
     private void OnRecentImageFilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -320,6 +447,9 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
                 OnPropertyChanged(nameof(TextColor));
                 OnPropertyChanged(nameof(TextColorBrush));
                 break;
+            case nameof(MainViewModel.ShadowColor):
+                OnPropertyChanged(nameof(ShadowColorBrush));
+                break;
             case nameof(MainViewModel.HasSelectedAnnotation):
                 OnPropertyChanged(nameof(HasSelection));
                 break;
@@ -335,12 +465,19 @@ public sealed class EditorToolbarAdapter : IAnnotationToolbarAdapter
                 break;
             case nameof(MainViewModel.IsEffectsPanelOpen):
                 OnPropertyChanged(nameof(IsEffectsPanelOpen));
+                OnPropertyChanged(nameof(IsEffectsButtonActive));
+                break;
+            case nameof(MainViewModel.EffectsPanelContent):
+                OnPropertyChanged(nameof(IsEffectsButtonActive));
                 break;
             case nameof(MainViewModel.IsSettingsPanelOpen):
                 OnPropertyChanged(nameof(IsSettingsPanelOpen));
                 break;
             case nameof(MainViewModel.ShowFileMenu):
                 OnPropertyChanged(nameof(ShowFileMenu));
+                break;
+            case nameof(MainViewModel.ShowOptionsButton):
+                OnPropertyChanged(nameof(ShowOptionsButton));
                 break;
             case nameof(MainViewModel.HasRecentImageFiles):
                 OnPropertyChanged(nameof(HasRecentImageFiles));

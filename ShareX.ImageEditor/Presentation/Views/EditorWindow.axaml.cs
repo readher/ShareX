@@ -222,6 +222,25 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
         }
 
+        /// <summary>
+        /// Loads an image from an existing SKBitmap instance.
+        /// Ownership is transferred to the view model.
+        /// </summary>
+        public void LoadImage(SKBitmap bitmap)
+        {
+            if (bitmap == null) return;
+
+            try
+            {
+                _viewModel.UpdatePreview(bitmap);
+                _viewModel.IsDirty = false;
+            }
+            catch (Exception ex)
+            {
+                EditorServices.ReportError(nameof(EditorWindow), "Failed to load image from bitmap.", ex);
+            }
+        }
+
         private static string GetWindowTitle(string? dimensions)
         {
             return string.IsNullOrEmpty(dimensions)

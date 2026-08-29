@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="lblx264CRF.Text" xml:space="preserve">
-    <value>CRF:</value>
-  </data>
   <data name="nudx264CRF.ToolTip" xml:space="preserve">
     <value>Factor de taxa constante (CRF): O valor pode ser entre 0-51, em que 0 é sem perdas, 30 é padrão, e 51 é pior qualidade possível.
 
@@ -133,33 +130,15 @@ Um valor mais alto significa pior qualidade, mas com um tamanho de ficheiro meno
 Preset lento = Lenta codificação mas menos tamanho de ficheiro.
 Para codificação em tempo real (e.x. captura de ecrã), o preset têm de ser o mais rápido possível.</value>
   </data>
-  <data name="tbVorbis_qscale.ToolTip" xml:space="preserve">
-    <value>Alcance entre 0-10, onde 10 é a melhor qualidade possível. 3-6 é um bom limite para experimentar. Por defeito é 3.</value>
-  </data>
-  <data name="tbMP3_qscale.ToolTip" xml:space="preserve">
-    <value>Alcance entre 0-9, onde um número menor é igual a maior qualidade. 0-3 normalmente produz resultados transparentes, 4 (padrão) deve ser perto de transparência perceptível e 6 produz uma qualidade "aceitável".</value>
-  </data>
-  <data name="tbAACBitrate.ToolTip" xml:space="preserve">
-    <value>Padrão é 128k</value>
-  </data>
   <data name="cbGIFStatsMode.ToolTip" xml:space="preserve">
     <value>Padrão é cheio.</value>
   </data>
   <data name="cbGIFDither.ToolTip" xml:space="preserve">
     <value>Padrão é sierra2_4a.</value>
   </data>
-  <data name="pbAudioCodecWarning.ToolTip" xml:space="preserve">
-    <value>Este codec de aúdio não é suportado pelo recipiente de vídeo seleccionado.</value>
-  </data>
   <data name="pbx264PresetWarning.ToolTip" xml:space="preserve">
     <value>Para codificação em tempo real como captura de ecrã é recomendado seleccionar um preset mais rápido possível.
 Caso contrário é impossível acompanhar a gravação e irão ocorrer muitas falhas de imagem.</value>
-  </data>
-  <data name="tbOpusBitrate.ToolTip" xml:space="preserve">
-    <value>Padrão é 128k.</value>
-  </data>
-  <data name="lblCodec.Text" xml:space="preserve">
-    <value>Codec de vídeo:</value>
   </data>
   <data name="lblx264Preset.Text" xml:space="preserve">
     <value>Predefinição:</value>
@@ -167,20 +146,8 @@ Caso contrário é impossível acompanhar a gravação e irão ocorrer muitas fa
   <data name="lblXvidQscale.Text" xml:space="preserve">
     <value>Taxa de bitrate variável:</value>
   </data>
-  <data name="btnFFmpegBrowse.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="cbOverrideFFmpegPath.Text" xml:space="preserve">
-    <value>Utilizar caminho personalizado</value>
-  </data>
   <data name="cbCustomCommands.Text" xml:space="preserve">
     <value>Utilizador comandos personalizados</value>
-  </data>
-  <data name="tpX264.Text" xml:space="preserve">
-    <value>x264 / x265</value>
-  </data>
-  <data name="lblVP8BitrateK.Text" xml:space="preserve">
-    <value>kbps</value>
   </data>
   <data name="lblVP8Bitrate.Text" xml:space="preserve">
     <value>Taxa de bitrate variável:</value>
@@ -190,12 +157,6 @@ Caso contrário é impossível acompanhar a gravação e irão ocorrer muitas fa
   </data>
   <data name="lblAMFUsage.Text" xml:space="preserve">
     <value>Utilização:</value>
-  </data>
-  <data name="btnTest.Text" xml:space="preserve">
-    <value>Testar com linha de comandos</value>
-  </data>
-  <data name="btnCopyPreview.Text" xml:space="preserve">
-    <value>Copiar</value>
   </data>
   <data name="lblVorbisQuality.Text" xml:space="preserve">
     <value>Qualidade:</value>
@@ -209,19 +170,64 @@ Caso contrário é impossível acompanhar a gravação e irão ocorrer muitas fa
   <data name="lblAudioSource.Text" xml:space="preserve">
     <value>Fonte de áudio:</value>
   </data>
-  <data name="lblAudioCodec.Text" xml:space="preserve">
-    <value>Codec de áudio:</value>
-  </data>
   <data name="lblHelperDevices.Text" xml:space="preserve">
     <value>Instala fonte de vídeo/audio "screen-capture-recorder" e "virtual-audio-capturer".</value>
   </data>
   <data name="btnInstallHelperDevices.Text" xml:space="preserve">
     <value>Instalar dispositivos de gravação</value>
   </data>
-  <data name="btnRefreshSources.Text" xml:space="preserve">
-    <value>Actualizar</value>
-  </data>
   <data name="$this.Text" xml:space="preserve">
     <value>ShareX - Opções de gravação do ecrã</value>
+  </data>
+  <data name="nudGIFBayerScale.ToolTip" xml:space="preserve">
+    <value>Controla o índice de escala Bayer; uma escala superior mostrará mais bandas. A predefinição é 2.</value>
+  </data>
+  <data name="lblCommandLineArgs.Text" xml:space="preserve">
+    <value>Adicionaritional command line arguments:</value>
+  </data>
+  <data name="cbUseCustomFFmpegPath.Text" xml:space="preserve">
+    <value>Use personalizado FFmpeg caminho:</value>
+  </data>
+  <data name="lblVideoEncoder.Text" xml:space="preserve">
+    <value>Video codificador:</value>
+  </data>
+  <data name="lblAudioEncoder.Text" xml:space="preserve">
+    <value>Audio codificador:</value>
+  </data>
+  <data name="lblAACBitrate.Text" xml:space="preserve">
+    <value>Taxa de bits:</value>
+  </data>
+  <data name="lblOpusBitrate.Text" xml:space="preserve">
+    <value>Taxa de bits:</value>
+  </data>
+  <data name="cbx264UseBitrate.Text" xml:space="preserve">
+    <value>Utilizar taxa de bits</value>
+  </data>
+  <data name="lblNVENCTune.Text" xml:space="preserve">
+    <value>Ajuste:</value>
+  </data>
+  <data name="lblNVENCPreset.Text" xml:space="preserve">
+    <value>Prepor:</value>
+  </data>
+  <data name="lblNVENCBitrate.Text" xml:space="preserve">
+    <value>Taxa de bits:</value>
+  </data>
+  <data name="lblGIFDither.Text" xml:space="preserve">
+    <value>Modo de dithering:</value>
+  </data>
+  <data name="lblGIFStatsMode.Text" xml:space="preserve">
+    <value>Modo de paleta:</value>
+  </data>
+  <data name="lblAMFBitrate.Text" xml:space="preserve">
+    <value>Taxa de bits:</value>
+  </data>
+  <data name="lblQSVPreset.Text" xml:space="preserve">
+    <value>Prepor:</value>
+  </data>
+  <data name="lblQSVBitrate.Text" xml:space="preserve">
+    <value>Taxa de bits:</value>
+  </data>
+  <data name="btnResetOptions.Text" xml:space="preserve">
+    <value>Repor opções...</value>
   </data>
 </root>

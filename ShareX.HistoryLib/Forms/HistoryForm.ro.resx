@@ -135,9 +135,6 @@
   <data name="tsbAdvancedSearch.Text" xml:space="preserve">
     <value>Căutare avansată...</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>Comutați mai multe informații</value>
-  </data>
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>Arată statisticile...</value>
   </data>
@@ -176,5 +173,11 @@
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>ShareX - Istoric</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>Favorite</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>Importă folder...</value>
   </data>
 </root>

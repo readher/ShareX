@@ -51,9 +51,10 @@ namespace ShareX.ImageEditor.Presentation.Rendering
             {
                 using (var locked = writeableBitmap.Lock())
                 {
+                    var pixelSize = writeableBitmap.PixelSize;
                     var info = new SKImageInfo(
-                        (int)avaloniaBitmap.Size.Width,
-                        (int)avaloniaBitmap.Size.Height,
+                        pixelSize.Width,
+                        pixelSize.Height,
                         SKColorType.Bgra8888, // Avalonia usually uses BGRA
                         SKAlphaType.Premul);
 
@@ -65,7 +66,6 @@ namespace ShareX.ImageEditor.Presentation.Rendering
 
                         // Copy row by row to handle stride differences if any
                         var height = info.Height;
-                        var width = info.Width;
                         var srcStride = locked.RowBytes;
                         var dstStride = skBitmap.RowBytes;
                         var bytesPerRow = Math.Min(srcStride, dstStride); // Safe copy width
@@ -127,8 +127,10 @@ namespace ShareX.ImageEditor.Presentation.Rendering
             {
                 var info = skBitmap.Info;
 
-                // If the source is already Bgra8888, we can copy directly
-                if (info.ColorType == SKColorType.Bgra8888)
+                // Raw byte copy is only valid when the source pixels are already in the
+                // premultiplied format expected by Avalonia's WriteableBitmap buffer.
+                if (info.ColorType == SKColorType.Bgra8888 &&
+                    (info.AlphaType == SKAlphaType.Premul || info.AlphaType == SKAlphaType.Opaque))
                 {
                     unsafe
                     {

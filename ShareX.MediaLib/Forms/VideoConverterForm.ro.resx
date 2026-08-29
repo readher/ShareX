@@ -126,9 +126,6 @@
   <data name="lblOutputFileName.Text" xml:space="preserve">
     <value>Numele fișierului de ieșire:</value>
   </data>
-  <data name="lblVideoCodec.Text" xml:space="preserve">
-    <value>Codec video:</value>
-  </data>
   <data name="lblVideoQuality.Text" xml:space="preserve">
     <value>Calitatea video:</value>
   </data>
@@ -143,5 +140,11 @@
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>ShareX - Convertor video</value>
+  </data>
+  <data name="lblVideoEncoder.Text" xml:space="preserve">
+    <value>Video codificator:</value>
+  </data>
+  <data name="cbVideoQualityUseBitrate.Text" xml:space="preserve">
+    <value>Folosește rata de biți</value>
   </data>
 </root>

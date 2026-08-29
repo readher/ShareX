@@ -35,6 +35,7 @@ public partial class FreehandAnnotation : Annotation, IPointBasedAnnotation
 {
     public override AnnotationCategory Category => AnnotationCategory.Shapes;
     public List<SKPoint> Points { get; set; } = new List<SKPoint>();
+    public BorderStyle BorderStyle { get; set; } = BorderStyle.Solid;
 
     /// <summary>
     /// Simplification tolerance for smoothing

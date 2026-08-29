@@ -171,10 +171,13 @@
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>顯示統計資料...</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>切換顯示更多資訊</value>
-  </data>
   <data name="tslSearch.Text" xml:space="preserve">
     <value>搜尋：</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>匯入資料夾...</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>收藏</value>
   </data>
 </root>

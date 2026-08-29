@@ -34,6 +34,8 @@ public partial class RectangleAnnotation : Annotation
 {
     public override AnnotationCategory Category => AnnotationCategory.Shapes;
 
+    public BorderStyle BorderStyle { get; set; } = BorderStyle.Solid;
+
     public int CornerRadius { get; set; }
 
     public RectangleAnnotation()
@@ -44,6 +46,19 @@ public partial class RectangleAnnotation : Annotation
     public override bool HitTest(SKPoint point, float tolerance = 5)
     {
         var rect = GetBounds();
+
+        if (RotationAngle != 0)
+        {
+            float cx = rect.MidX;
+            float cy = rect.MidY;
+            float rad = -RotationAngle * (float)Math.PI / 180f;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+            float dx = point.X - cx;
+            float dy = point.Y - cy;
+            point = new SKPoint(cx + dx * cos - dy * sin, cy + dx * sin + dy * cos);
+        }
+
         var expanded = SKRect.Inflate(rect, tolerance, tolerance);
         return expanded.Contains(point);
     }

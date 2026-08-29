@@ -61,12 +61,27 @@ public partial class HighlightAnnotation : BaseEffectAnnotation
 
     internal override void UpdateEffectFromInteractionCache(SKBitmap source, SKBitmap cachedEffectBitmap)
     {
+        if (RotationAngle != 0)
+        {
+            UpdateEffectFromProcessedSource(source, cachedEffectBitmap);
+            return;
+        }
+
         UpdateEffectFromAlignedCache(source, cachedEffectBitmap);
     }
 
     public override void UpdateEffect(SKBitmap source)
     {
         if (source == null) return;
+
+        if (RotationAngle != 0)
+        {
+            using var highlightedSource = CreateHighlightedSourceCache(source, FillColor);
+            if (highlightedSource == null) return;
+
+            UpdateEffectFromProcessedSource(source, highlightedSource);
+            return;
+        }
 
         var rect = GetBounds();
         var fullW = (int)rect.Width;

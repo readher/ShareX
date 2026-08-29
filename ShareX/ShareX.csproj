@@ -15,8 +15,10 @@
     <CETCompat>false</CETCompat>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia.Win32.Interoperability" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" />
     <PackageReference Include="ZXing.Net" />
     <PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" />
   </ItemGroup>

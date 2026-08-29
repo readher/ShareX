@@ -65,8 +65,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="emoji:EmojiCatalogEntry">
                                     <Button Classes="effect-item emoji-tile"
-                                            Command="{ReflectionBinding DataContext.SelectEmojiCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
+                                            Click="OnEmojiSelected"
                                             ToolTip.Tip="{Binding Name}">
                                         <controls:EmojiPreviewImage UnicodeSequence="{Binding Unicode}"
                                                                     PreviewSize="48"

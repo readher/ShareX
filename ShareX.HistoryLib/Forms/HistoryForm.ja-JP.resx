@@ -162,13 +162,22 @@
   <data name="tsbSettings.Text" xml:space="preserve">
     <value>設定...</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>詳細情報の表示・非表示の切り替え</value>
-  </data>
   <data name="tslSearch.Text" xml:space="preserve">
     <value>検索:</value>
   </data>
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>利用統計を表示...</value>
+  </data>
+  <data name="chURL.Text" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>お気に入り</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>フォルダーをインポート...</value>
+  </data>
+  <data name="lblURLFilter.Text" xml:space="preserve">
+    <value>URL:</value>
   </data>
 </root>

@@ -33,6 +33,7 @@ using ShareX.ImageEditor.Core.Annotations;
 using ShareX.ImageEditor.Core.Editor;
 using ShareX.ImageEditor.Hosting;
 using ShareX.ImageEditor.Presentation.Emoji;
+using ShareX.ImageEditor.Presentation.Theming;
 using System.Collections.ObjectModel;
 
 namespace ShareX.ImageEditor.Presentation.ViewModels
@@ -43,6 +44,16 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         {
             public required string Name { get; init; }
             public required IBrush Brush { get; init; }
+
+            public Color Color1 => GetGradientStopColor(0);
+            public Color Color2 => GetGradientStopColor(1);
+
+            private Color GetGradientStopColor(int index)
+            {
+                return Brush is LinearGradientBrush { GradientStops.Count: > 0 } linear
+                    ? linear.GradientStops[Math.Min(index, linear.GradientStops.Count - 1)].Color
+                    : Colors.Transparent;
+            }
         }
 
         public enum EditorTaskResult
@@ -75,13 +86,25 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         private bool _showFileMenu;
 
         [ObservableProperty]
+        private bool _showOptionsButton = true;
+
+        [ObservableProperty]
         private bool _showTaskButtons = true;
 
         [ObservableProperty]
         private bool _showBottomToolbar = true;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AreToolbarsHidden))]
+        [NotifyPropertyChangedFor(nameof(ToggleToolbarsMenuHeader))]
+        private bool _showToolbars = true;
+
+        [ObservableProperty]
         private bool _showStartScreen = true;
+
+        public bool AreToolbarsHidden => !ShowToolbars;
+
+        public string ToggleToolbarsMenuHeader => ShowToolbars ? "Hide toolbars" : "Show toolbars";
 
         // Events to signal View to perform canvas operations
         public event EventHandler? UndoRequested;
@@ -97,6 +120,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         public event EventHandler? CopyAnnotationRequested;
         public event EventHandler? ZoomToFitRequested;
         public event EventHandler? CloseRequested;
+        public event EventHandler? ImageInsertionRequested;
         public event EventHandler<EmojiSelectionRequest>? EmojiInsertionRequested;
 
         // File menu events (Image Editor Mode)
@@ -131,6 +155,12 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         private void Cancel()
         {
             RequestClose();
+        }
+
+        [RelayCommand]
+        private void ToggleToolbars()
+        {
+            ShowToolbars = !ShowToolbars;
         }
 
         public void RequestClose(bool ignoreModal = false)
@@ -168,7 +198,12 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
 
         public void RequestCopyToClipboard()
         {
-            _copyRequested?.Invoke();
+            _ = RequestCopyToClipboardAsync();
+        }
+
+        public Task RequestCopyToClipboardAsync()
+        {
+            return InvokeRequestedHandlersAsync(_copyRequested);
         }
 
         private void ShowConfirmationDialog()
@@ -179,12 +214,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             }
 
             var dialog = new ConfirmationDialogViewModel(
-                onYes: () =>
-                {
-                    Save();
-                    CloseModal();
-                    CloseRequested?.Invoke(this, EventArgs.Empty);
-                },
+                onYes: () => _ = SaveAndCloseAfterConfirmationAsync(),
                 onNo: () =>
                 {
                     CloseModal();
@@ -200,9 +230,16 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             IsModalOpen = true;
         }
 
+        private async Task SaveAndCloseAfterConfirmationAsync()
+        {
+            await RequestSaveAsync();
+            CloseModal();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         // Export events
-        private Action? _copyRequested;
-        public event Action? CopyRequested
+        private Func<Task>? _copyRequested;
+        public event Func<Task>? CopyRequested
         {
             add { _copyRequested += value; CopyCommand.NotifyCanExecuteChanged(); }
             remove { _copyRequested -= value; CopyCommand.NotifyCanExecuteChanged(); }
@@ -210,8 +247,8 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         public bool HasHostCopyHandler { get; set; }
         public bool CanCopy() => _copyRequested != null && HasPreviewImage;
 
-        private Action? _saveRequested;
-        public event Action? SaveRequested
+        private Func<Task<string?>>? _saveRequested;
+        public event Func<Task<string?>>? SaveRequested
         {
             add { _saveRequested += value; SaveCommand.NotifyCanExecuteChanged(); }
             remove { _saveRequested -= value; SaveCommand.NotifyCanExecuteChanged(); }
@@ -219,14 +256,22 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         public bool HasHostSaveHandler { get; set; }
         public bool CanSave() => _saveRequested != null && HasPreviewImage;
 
-        private Action? _saveAsRequested;
-        public event Action? SaveAsRequested
+        private Func<Task<string?>>? _saveAsRequested;
+        public event Func<Task<string?>>? SaveAsRequested
         {
             add { _saveAsRequested += value; SaveAsCommand.NotifyCanExecuteChanged(); }
             remove { _saveAsRequested -= value; SaveAsCommand.NotifyCanExecuteChanged(); }
         }
         public bool HasHostSaveAsHandler { get; set; }
         public bool CanSaveAs() => _saveAsRequested != null && HasPreviewImage;
+
+        private Action? _printRequested;
+        public event Action? PrintRequested
+        {
+            add { _printRequested += value; PrintCommand.NotifyCanExecuteChanged(); }
+            remove { _printRequested -= value; PrintCommand.NotifyCanExecuteChanged(); }
+        }
+        public bool CanPrint() => _printRequested != null && HasPreviewImage;
 
         private Action? _pinRequested;
         public event Action? PinRequested
@@ -269,6 +314,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
                     CopyCommand.NotifyCanExecuteChanged();
                     SaveCommand.NotifyCanExecuteChanged();
                     SaveAsCommand.NotifyCanExecuteChanged();
+                    PrintCommand.NotifyCanExecuteChanged();
                     PinToScreenCommand.NotifyCanExecuteChanged();
                     UploadCommand.NotifyCanExecuteChanged();
                     ZoomInCommand.NotifyCanExecuteChanged();
@@ -454,7 +500,8 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         {
             if (value != null)
             {
-                SyncImageDimensions(value.Size.Width, value.Size.Height);
+                var pixelSize = value.PixelSize;
+                SyncImageDimensions(pixelSize.Width, pixelSize.Height);
 
                 if (!_isSyncingFromCore && !_isApplyingSmartPadding)
                 {
@@ -591,6 +638,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             OnPropertyChanged(nameof(AreBackgroundEffectsActive));
             OnPropertyChanged(nameof(EffectiveCanvasBackground));
             RefreshSmartPaddingState(ensureCache: value && _originalSourceImage != null, forceCacheRefresh: value);
+            RefreshToolbarItemActiveStates();
         }
 
         public void UpdateCoreHistoryState(bool canUndo, bool canRedo)
@@ -667,7 +715,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         [RelayCommand]
         private void ResetNumberCounter()
         {
-            NumberCounter = 1;
+            NumberCounter = StepStartNumber;
         }
 
         public void RecalculateNumberCounter(IEnumerable<Annotation> annotations)
@@ -683,7 +731,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
                     }
                 }
             }
-            NumberCounter = max + 1;
+            NumberCounter = Math.Max(max + 1, StepStartNumber);
         }
 
         [RelayCommand]
@@ -694,6 +742,8 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
 
         // Effects Panel Properties
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsEffectBrowserVisible))]
+        [NotifyPropertyChangedFor(nameof(IsRightEffectsSidebarVisible))]
         private bool _isEffectsPanelOpen;
 
         [ObservableProperty]
@@ -794,6 +844,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             RecentImageFiles = new ReadOnlyObservableCollection<string>(_recentImageFiles);
             _activeTool = GetInitialAnnotationTool();
 
+            InitializeToolbarCustomization();
             ToolbarAdapter = new EditorToolbarAdapter(this);
             Current = this;
             GradientPresets = BuildGradientPresets();
@@ -810,11 +861,16 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             _cornerRadius = _options.CornerRadius;
             _fontSize = _options.TextFontSize;
             _selectedFontFamily = NormalizeFontFamily(_options.TextFontFamily);
+            _selectedBorderStyle = NormalizeBorderStyle(_options.BorderStyle);
             _selectedArrowStyle = NormalizeArrowStyle(_options.ArrowStyle);
             _shadowEnabled = _options.Shadow;
+            _shadowColor = _options.ShadowColorHex;
+            _shadowBlurRadius = _options.ShadowBlurRadius;
+            _shadowOpacity = _options.ShadowOpacity;
+            _shadowOffsetX = _options.ShadowOffsetX;
+            _shadowOffsetY = _options.ShadowOffsetY;
             _textBold = _options.TextBold;
             _textItalic = _options.TextItalic;
-            _textUnderline = _options.TextUnderline;
 
             // Get version from assembly
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -1023,6 +1079,13 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         [RelayCommand]
         private void SelectTool(EditorTool tool)
         {
+            if (tool == EditorTool.Image)
+            {
+                DeselectRequested?.Invoke(this, EventArgs.Empty);
+                RequestImageInsertion();
+                return;
+            }
+
             if (tool == EditorTool.Emoji)
             {
                 DeselectRequested?.Invoke(this, EventArgs.Empty);
@@ -1047,7 +1110,17 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             ActiveTool = tool;
         }
 
-        private void ShowEmojiPickerDialog()
+        private void RequestImageInsertion()
+        {
+            if (IsModalOpen)
+            {
+                return;
+            }
+
+            ImageInsertionRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        internal void ShowEmojiPickerDialog(Action<EmojiCatalogEntry>? onSelect = null)
         {
             if (IsModalOpen)
             {
@@ -1058,7 +1131,15 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
                 onSelect: entry =>
                 {
                     CloseModal();
-                    EmojiInsertionRequested?.Invoke(this, new EmojiSelectionRequest(entry.Unicode, entry.Name));
+
+                    if (onSelect != null)
+                    {
+                        onSelect(entry);
+                    }
+                    else
+                    {
+                        EmojiInsertionRequested?.Invoke(this, new EmojiSelectionRequest(entry.Unicode, entry.Name));
+                    }
                 },
                 onCancel: CloseModal);
 
@@ -1161,24 +1242,45 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
             ClearAnnotationsRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        [RelayCommand(CanExecute = nameof(CanCopy))]
-        private void Copy()
+        private Task<string?> RequestSaveAsync()
         {
-            RequestCopyToClipboard();
+            return InvokeRequestedHandlersAsync(_saveRequested);
+        }
+
+        private Task<string?> RequestSaveAsAsync()
+        {
+            return InvokeRequestedHandlersAsync(_saveAsRequested);
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopy))]
+        private async Task Copy()
+        {
+            await RequestCopyToClipboardAsync();
+            ShowTaskActionNotification("Image copied to clipboard.", EditorIcons.ActionCopy);
             CloseAfterTaskActionIfEnabled();
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-        private void Save()
+        private async Task Save()
         {
-            _saveRequested?.Invoke();
+            string? savedPath = await RequestSaveAsync();
+            ShowSaveNotification(savedPath, EditorIcons.ActionSave);
             CloseAfterTaskActionIfEnabled();
         }
 
         [RelayCommand(CanExecute = nameof(CanSaveAs))]
-        private void SaveAs()
+        private async Task SaveAs()
         {
-            _saveAsRequested?.Invoke();
+            string? savedPath = await RequestSaveAsAsync();
+            ShowSaveNotification(savedPath, EditorIcons.ActionSaveAs);
+            CloseAfterTaskActionIfEnabled();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanPrint))]
+        private void Print()
+        {
+            _printRequested?.Invoke();
+            ShowTaskActionNotification("Image printed.", EditorIcons.ActionPrint);
             CloseAfterTaskActionIfEnabled();
         }
 
@@ -1186,6 +1288,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         private void PinToScreen()
         {
             _pinRequested?.Invoke();
+            ShowTaskActionNotification("Image pinned to screen.", EditorIcons.ActionPinToScreen);
             CloseAfterTaskActionIfEnabled();
         }
 
@@ -1193,6 +1296,7 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
         private async Task Upload()
         {
             _uploadRequested?.Invoke();
+            ShowTaskActionNotification("Image is uploading.", EditorIcons.ActionUpload);
             CloseAfterTaskActionIfEnabled();
         }
 

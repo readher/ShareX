@@ -159,9 +159,6 @@
   <data name="lblFilterTo.Text" xml:space="preserve">
     <value>إلى:</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>عرض/إخفاء المعلومات الإضافية</value>
-  </data>
   <data name="cbTypeFilter.Text" xml:space="preserve">
     <value>النوع:</value>
   </data>
@@ -176,5 +173,11 @@
   </data>
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>عرض الإحصائيات...</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>المفضلة</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>استيراد مجلد...</value>
   </data>
 </root>

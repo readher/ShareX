@@ -1816,6 +1816,16 @@ namespace ShareX.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap image_reflection {
+            get {
+                object obj = ResourceManager.GetObject("image-reflection", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap image_resize_actual {
             get {
                 object obj = ResourceManager.GetObject("image_resize_actual", resourceCulture);
@@ -3195,6 +3205,16 @@ namespace ShareX.Properties {
         internal static System.Drawing.Bitmap vn {
             get {
                 object obj = ResourceManager.GetObject("vn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap wand_magic {
+            get {
+                object obj = ResourceManager.GetObject("wand-magic", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -1139,7 +1139,8 @@ public class EditorCore : IDisposable
 
         if (x < 0 || y < 0 || x >= snapshot.Width || y >= snapshot.Height)
         {
-            return null;
+            x = 0;
+            y = 0;
         }
 
         var color = snapshot.GetPixel(x, y);
@@ -1430,7 +1431,7 @@ public class EditorCore : IDisposable
 
     private IEnumerable<(HandleType Type, SKPoint Position)> GetAnnotationHandles(Annotation annotation)
     {
-        if (annotation is FreehandAnnotation)
+        if (annotation is FreehandAnnotation or CursorAnnotation)
         {
             yield break;
         }
@@ -1464,13 +1465,27 @@ public class EditorCore : IDisposable
             yield return (HandleType.BottomLeft, rotate ? RotatePoint(bl, center, angle) : bl);
             yield return (HandleType.MiddleLeft, rotate ? RotatePoint(ml, center, angle) : ml);
 
-            // Rotation handle above the top-center for text and emoji annotations
-            if (annotation is TextAnnotation or EmojiAnnotation)
+            // Rotation handle above the top-center for annotations that support node rotation.
+            if (SupportsRotationHandle(annotation))
             {
                 var rotHandle = new SKPoint(bounds.MidX, bounds.Top - RotationHandleOffset);
                 yield return (HandleType.Rotate, rotate ? RotatePoint(rotHandle, center, angle) : rotHandle);
             }
         }
+    }
+
+    private static bool SupportsRotationHandle(Annotation annotation)
+    {
+        return annotation switch
+        {
+            BaseEffectAnnotation => true,
+            TextAnnotation => true,
+            ImageAnnotation and not CursorAnnotation => true,
+            SpeechBalloonAnnotation => true,
+            RectangleAnnotation and not SmartEraserAnnotation => true,
+            EllipseAnnotation => true,
+            _ => false
+        };
     }
 
     /// <summary>
@@ -1504,6 +1519,7 @@ public class EditorCore : IDisposable
             EditorTool.Freehand => new FreehandAnnotation(),
             EditorTool.SmartEraser => new SmartEraserAnnotation(),
             EditorTool.Step => new NumberAnnotation(),
+            EditorTool.Cursor => new CursorAnnotation(),
             EditorTool.Blur => new BlurAnnotation(),
             EditorTool.Pixelate => new PixelateAnnotation(),
             EditorTool.Highlight => new HighlightAnnotation(),
@@ -1539,16 +1555,21 @@ public class EditorCore : IDisposable
     /// <summary>
     /// Perform crop operation with specific bounds
     /// </summary>
-    public void Crop(SKRect bounds)
+    public bool Crop(SKRect bounds)
     {
-        if (SourceImage == null) return;
+        if (SourceImage == null) return false;
 
         int x = (int)Math.Max(0, bounds.Left);
         int y = (int)Math.Max(0, bounds.Top);
         int width = (int)Math.Min(SourceImage.Width - x, bounds.Width);
         int height = (int)Math.Min(SourceImage.Height - y, bounds.Height);
 
-        if (width <= 0 || height <= 0) return;
+        if (width <= 0 || height <= 0) return false;
+
+        if (x == 0 && y == 0 && width == SourceImage.Width && height == SourceImage.Height)
+        {
+            return false;
+        }
 
         // Create canvas memento before destructive crop operation
         _history.CreateCanvasMemento();
@@ -1636,6 +1657,7 @@ public class EditorCore : IDisposable
         ImageChanged?.Invoke();
         HistoryChanged?.Invoke();
         InvalidateRequested?.Invoke();
+        return true;
     }
 
     /// <summary>

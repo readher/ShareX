@@ -40,6 +40,17 @@ public partial class SpotlightAnnotation : Annotation
     public byte DarkenOpacity { get; set; } = 180;
 
     /// <summary>
+    /// Blur amount applied to the background outside the spotlight bounds.
+    /// A value of 0 disables the blur pass.
+    /// </summary>
+    public float BlurAmount { get; set; }
+
+    /// <summary>
+    /// Whether the spotlight cutout is rendered as an ellipse instead of a rectangle.
+    /// </summary>
+    public bool IsEllipse { get; set; }
+
+    /// <summary>
     /// Size of the canvas (needed for full overlay)
     /// </summary>
     public SKSize CanvasSize { get; set; }
@@ -53,6 +64,21 @@ public partial class SpotlightAnnotation : Annotation
     {
         var bounds = GetBounds();
         var inflated = SKRect.Inflate(bounds, tolerance, tolerance);
-        return inflated.Contains(point);
+
+        if (!IsEllipse)
+        {
+            return inflated.Contains(point);
+        }
+
+        float radiusX = inflated.Width / 2f;
+        float radiusY = inflated.Height / 2f;
+        if (radiusX <= 0 || radiusY <= 0)
+        {
+            return false;
+        }
+
+        float normalizedX = (point.X - inflated.MidX) / radiusX;
+        float normalizedY = (point.Y - inflated.MidY) / radiusY;
+        return normalizedX * normalizedX + normalizedY * normalizedY <= 1f;
     }
 }

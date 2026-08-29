@@ -174,7 +174,10 @@
   <data name="tslSearch.Text" xml:space="preserve">
     <value>Tìm kiếm:</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>Chuyển đổi thêm thông tin</value>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>Yêu thích</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>Import thư mục...</value>
   </data>
 </root>

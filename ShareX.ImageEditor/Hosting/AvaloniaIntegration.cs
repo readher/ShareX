@@ -25,13 +25,12 @@
 
 using Avalonia;
 using Avalonia.Controls;
-using SkiaSharp;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Themes.Fluent;
 using Avalonia.Threading;
-using ShareX.ImageEditor.Hosting.Diagnostics;
 using ShareX.ImageEditor.Presentation.ViewModels;
 using ShareX.ImageEditor.Presentation.Views;
+using SkiaSharp;
 
 namespace ShareX.ImageEditor.Hosting
 {
@@ -59,9 +58,9 @@ namespace ShareX.ImageEditor.Hosting
         public Action<SKBitmap>? CopyImageRequested { get; set; }
         public Func<SKBitmap, string?, string?>? SaveImageRequested { get; set; }
         public Func<SKBitmap, string?, string?>? SaveImageAsRequested { get; set; }
+        public Action<SKBitmap>? PrintImageRequested { get; set; }
         public Action<SKBitmap>? PinImageRequested { get; set; }
         public Action<SKBitmap>? UploadImageRequested { get; set; }
-        public Action<EditorDiagnosticEvent>? DiagnosticReported { get; set; }
         public string? ImageFilePath { get; set; }
     }
 
@@ -69,13 +68,13 @@ namespace ShareX.ImageEditor.Hosting
     {
         private static bool initialized = false;
 
-        private static readonly object _initLock = new object();
+        private static readonly object initLock = new object();
 
         public static void Initialize()
         {
             if (!initialized)
             {
-                lock (_initLock)
+                lock (initLock)
                 {
                     if (!initialized)
                     {
@@ -100,135 +99,107 @@ namespace ShareX.ImageEditor.Hosting
             }
         }
 
-        public static void ShowEditor(string filePath)
-        {
-            Initialize();
-            EditorWindow window = new EditorWindow();
-
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-            {
-                window.LoadImage(filePath);
-            }
-
-            window.Show();
-        }
-
-        public static void ShowEditor(Stream imageStream)
-        {
-            Initialize();
-            EditorWindow window = new EditorWindow();
-
-            if (imageStream != null)
-            {
-                window.LoadImage(imageStream);
-            }
-
-            window.Show();
-        }
-
-        public static byte[]? ShowEditorDialog(ImageEditorOptions options, EditorEvents? events = null,
+        public static SKBitmap? ShowEditorDialog(ImageEditorOptions options, EditorEvents? events = null,
             bool taskMode = false, string? imageFilePath = null)
         {
             return ShowEditorDialog(null, options, events, taskMode, imageFilePath);
         }
 
-        public static byte[]? ShowEditorDialog(Stream? imageStream, ImageEditorOptions options, EditorEvents? events = null,
-            bool taskMode = false, string? imageFilePath = null)
+        public static void ShowImageComparerWindow()
         {
-            byte[]? result = null;
-            IEditorDiagnosticsSink? previousDiagnosticsSink = null;
-            bool restoreScopedDiagnostics = false;
-
-            if (events?.DiagnosticReported != null)
-            {
-                var diagnosticHandler = events.DiagnosticReported;
-                previousDiagnosticsSink = EditorServices.Diagnostics;
-                restoreScopedDiagnostics = true;
-
-                EditorServices.Diagnostics = new DelegateEditorDiagnosticsSink(diagnosticEvent =>
-                {
-                    try
-                    {
-                        diagnosticHandler(diagnosticEvent);
-                    }
-                    catch
-                    {
-                        // Host diagnostics callback failures must not break the editor.
-                    }
-
-                    if (previousDiagnosticsSink != null)
-                    {
-                        try
-                        {
-                            previousDiagnosticsSink.Report(diagnosticEvent);
-                        }
-                        catch
-                        {
-                            // Ignore downstream sink failures.
-                        }
-                    }
-                });
-            }
-
             Initialize();
-            EditorWindow window = new EditorWindow(options);
 
-            if (imageStream != null)
+            Dispatcher.UIThread.Post(() =>
             {
-                window.LoadImage(imageStream);
-            }
-
-            // Set file path from events or parameter
-            string? filePath = imageFilePath ?? events?.ImageFilePath;
-
-            if (window.DataContext is MainViewModel vm)
-            {
-                if (!string.IsNullOrEmpty(filePath))
-                {
-                    vm.ImageFilePath = filePath;
-                }
-
-                vm.ShowFileMenu = !taskMode;
-                vm.ShowTaskButtons = true;
-                vm.UseContinueWorkflow = taskMode;
-                vm.ShowBottomToolbar = true;
-                vm.ShowStartScreen = !taskMode;
-            }
-
-            SetupEvents(window, events, () =>
-            {
-                if (window.DataContext is MainViewModel vm)
-                {
-                    switch (vm.TaskResult)
-                    {
-                        case MainViewModel.EditorTaskResult.Continue:
-                            result = window.GetResultBytes();
-                            break;
-                        case MainViewModel.EditorTaskResult.ContinueNoSave:
-                            result = window.GetSourceBytes();
-                            break;
-                    }
-                }
+                ImageComparerWindow window = new ImageComparerWindow();
+                window.Show();
             });
-
-            window.Show();
-
-            DispatcherFrame frame = new DispatcherFrame();
-            window.Closed += (s, e) =>
-            {
-                frame.Continue = false;
-
-                if (restoreScopedDiagnostics)
-                {
-                    EditorServices.Diagnostics = previousDiagnosticsSink;
-                }
-            };
-            Dispatcher.UIThread.PushFrame(frame);
-
-            return result;
         }
 
-        private static void SetupEvents(EditorWindow window, EditorEvents? events, Action onResult)
+        public static void ShowBackgroundRemoverWindow(string? modelsFolder)
+        {
+            ShowBackgroundRemoverWindow(modelsFolder, new BackgroundRemoverOptions());
+        }
+
+        public static void ShowBackgroundRemoverWindow(string? modelsFolder, BackgroundRemoverOptions options)
+        {
+            Initialize();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                BackgroundRemoverWindow window = new BackgroundRemoverWindow(modelsFolder, options);
+                window.Show();
+            });
+        }
+
+        public static SKBitmap? ShowEditorDialog(SKBitmap? imageBitmap, ImageEditorOptions options, EditorEvents? events = null,
+            bool taskMode = false, string? imageFilePath = null)
+        {
+            return ShowEditorDialogCore(imageBitmap, options, events, taskMode, imageFilePath);
+        }
+
+        private static SKBitmap? ShowEditorDialogCore(SKBitmap? imageBitmap, ImageEditorOptions options, EditorEvents? events,
+            bool taskMode, string? imageFilePath)
+        {
+            Initialize();
+
+            TaskCompletionSource<SKBitmap?> tcs = new TaskCompletionSource<SKBitmap?>();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                EditorWindow window = new EditorWindow(options);
+
+                if (imageBitmap != null)
+                {
+                    window.LoadImage(imageBitmap);
+                }
+
+                if (window.DataContext is MainViewModel vm)
+                {
+                    string? filePath = imageFilePath ?? events?.ImageFilePath;
+
+                    if (!string.IsNullOrEmpty(filePath))
+                    {
+                        vm.ImageFilePath = filePath;
+                    }
+
+                    vm.ShowFileMenu = true;
+                    vm.ShowOptionsButton = true;
+                    vm.ShowTaskButtons = true;
+                    vm.UseContinueWorkflow = taskMode;
+                    vm.ShowBottomToolbar = true;
+                    vm.ShowStartScreen = !taskMode;
+                }
+
+                SetupEvents(window, events);
+
+                window.Closed += (s, a) =>
+                {
+                    SKBitmap? result = null;
+
+                    if (window.DataContext is MainViewModel vm)
+                    {
+                        switch (vm.TaskResult)
+                        {
+                            case MainViewModel.EditorTaskResult.Continue:
+                                result = window.GetResultBitmap();
+                                break;
+                            case MainViewModel.EditorTaskResult.ContinueNoSave:
+                                result = window.GetSourceBitmap();
+                                break;
+                        }
+                    }
+
+                    tcs.SetResult(result);
+                };
+
+                window.Show();
+            });
+
+            return tcs.Task.ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        private static void SetupEvents(EditorWindow window, EditorEvents? events)
         {
             if (events == null) return;
 
@@ -240,11 +211,14 @@ namespace ShareX.ImageEditor.Hosting
                 vm.HasHostCopyHandler = true;
                 vm.CopyRequested += () =>
                 {
-                    using var skBitmap = window.GetResultBitmap();
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
                     if (skBitmap != null)
                     {
-                        InvokeHostCallback(skBitmap, events.CopyImageRequested, nameof(EditorEvents.CopyImageRequested));
+                        events.CopyImageRequested(skBitmap);
                     }
+
+                    return Task.CompletedTask;
                 };
             }
 
@@ -253,16 +227,22 @@ namespace ShareX.ImageEditor.Hosting
                 vm.HasHostSaveHandler = true;
                 vm.SaveRequested += () =>
                 {
-                    using var skBitmap = window.GetResultBitmap();
+                    string? savedPath = null;
+
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
                     if (skBitmap != null)
                     {
-                        string? savedPath = InvokeHostSaveCallback(skBitmap, vm.ImageFilePath, events.SaveImageRequested, nameof(EditorEvents.SaveImageRequested));
+                        savedPath = events.SaveImageRequested(skBitmap, vm.ImageFilePath);
+
                         if (!string.IsNullOrEmpty(savedPath))
                         {
                             vm.ImageFilePath = savedPath;
                             vm.IsDirty = false;
                         }
                     }
+
+                    return Task.FromResult(savedPath);
                 };
             }
 
@@ -271,15 +251,34 @@ namespace ShareX.ImageEditor.Hosting
                 vm.HasHostSaveAsHandler = true;
                 vm.SaveAsRequested += () =>
                 {
-                    using var skBitmap = window.GetResultBitmap();
+                    string? savedPath = null;
+
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
                     if (skBitmap != null)
                     {
-                        string? savedPath = InvokeHostSaveCallback(skBitmap, vm.ImageFilePath, events.SaveImageAsRequested, nameof(EditorEvents.SaveImageAsRequested));
+                        savedPath = events.SaveImageAsRequested(skBitmap, vm.ImageFilePath);
+
                         if (!string.IsNullOrEmpty(savedPath))
                         {
                             vm.ImageFilePath = savedPath;
                             vm.IsDirty = false;
                         }
+                    }
+
+                    return Task.FromResult(savedPath);
+                };
+            }
+
+            if (events.PrintImageRequested != null)
+            {
+                vm.PrintRequested += () =>
+                {
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
+                    if (skBitmap != null)
+                    {
+                        events.PrintImageRequested(skBitmap);
                     }
                 };
             }
@@ -288,10 +287,11 @@ namespace ShareX.ImageEditor.Hosting
             {
                 vm.PinRequested += () =>
                 {
-                    using var skBitmap = window.GetResultBitmap();
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
                     if (skBitmap != null)
                     {
-                        InvokeHostCallback(skBitmap, events.PinImageRequested, nameof(EditorEvents.PinImageRequested));
+                        events.PinImageRequested(skBitmap);
                     }
                 };
             }
@@ -300,49 +300,13 @@ namespace ShareX.ImageEditor.Hosting
             {
                 vm.UploadRequested += () =>
                 {
-                    using var skBitmap = window.GetResultBitmap();
+                    using SKBitmap? skBitmap = window.GetResultBitmap();
+
                     if (skBitmap != null)
                     {
-                        InvokeHostCallback(skBitmap, events.UploadImageRequested, nameof(EditorEvents.UploadImageRequested));
+                        events.UploadImageRequested(skBitmap);
                     }
                 };
-            }
-
-            window.Closed += (s, e) =>
-            {
-                try
-                {
-                    onResult();
-                }
-                catch (Exception ex)
-                {
-                    EditorServices.ReportError(nameof(AvaloniaIntegration), "Failed to process editor dialog result.", ex);
-                }
-            };
-        }
-
-        private static void InvokeHostCallback<T>(T data, Action<T> callback, string callbackName)
-        {
-            try
-            {
-                callback(data);
-            }
-            catch (Exception ex)
-            {
-                EditorServices.ReportError(nameof(AvaloniaIntegration), $"Host callback '{callbackName}' failed.", ex);
-            }
-        }
-
-        private static string? InvokeHostSaveCallback(SKBitmap skBitmap, string? filePath, Func<SKBitmap, string?, string?> callback, string callbackName)
-        {
-            try
-            {
-                return callback(skBitmap, filePath);
-            }
-            catch (Exception ex)
-            {
-                EditorServices.ReportError(nameof(AvaloniaIntegration), $"Host callback '{callbackName}' failed.", ex);
-                return null;
             }
         }
     }

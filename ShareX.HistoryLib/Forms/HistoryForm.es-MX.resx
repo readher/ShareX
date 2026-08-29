@@ -159,9 +159,6 @@
   <data name="tsbAdvancedSearch.Text" xml:space="preserve">
     <value>Búsqueda avanzada...</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>Activar/Desactivar más información</value>
-  </data>
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>Mostrar estadísticas...</value>
   </data>
@@ -176,5 +173,11 @@
   </data>
   <data name="gbAdvancedSearch.Text" xml:space="preserve">
     <value>Búsqueda avanzada</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>Favoritos</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>Import carpeta...</value>
   </data>
 </root>

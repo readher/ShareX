@@ -25,6 +25,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -67,6 +68,7 @@ namespace ShareX.ImageEditor.Presentation.Views
         private bool _isSyncingFromVM;
         private bool _isSyncingToVM;
         private bool _skipNextCoreImageChanged;
+        private bool _suppressNextHistoryDirtyMark;
         private bool _pendingZoomToFitOnOpen;
         private int _pendingZoomToFitRetryCount;
         private int _pendingAutoCopyImageVersion;
@@ -77,6 +79,7 @@ namespace ShareX.ImageEditor.Presentation.Views
         private EffectBrowserPanel? _effectBrowserPanel;
         private ImageEditorOptions? _effectBrowserPanelOptions;
         private Cursor? _interactionCursorOverride;
+        private CursorAssetLoader.CustomCursorKind? _interactionCursorAsset;
 
         // Window-level key handler reference (so shortcuts work regardless of focus)
         private Window? _parentWindow;
@@ -96,6 +99,7 @@ namespace ShareX.ImageEditor.Presentation.Views
             _zoomController = new EditorZoomController(this);
             _selectionController = new EditorSelectionController(this);
             _inputController = new EditorInputController(this, _selectionController, _zoomController);
+            InitializeEasterEggs();
 
             // Subscribe to selection controller events
             _selectionController.RequestUpdateEffect += OnRequestUpdateEffect;
@@ -153,18 +157,28 @@ namespace ShareX.ImageEditor.Presentation.Views
             };
             _editorCore.AnnotationsRestored += () => Avalonia.Threading.Dispatcher.UIThread.Post(OnAnnotationsRestored);
             _editorCore.AnnotationOrderChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(OnAnnotationOrderChanged);
-            _editorCore.HistoryChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            _editorCore.HistoryChanged += () =>
             {
-                if (DataContext is MainViewModel vm)
-                {
-                    UpdateViewModelHistoryState(vm);
-                    vm.RecalculateNumberCounter(_editorCore.Annotations);
+                bool suppressDirtyMark = _suppressNextHistoryDirtyMark;
+                _suppressNextHistoryDirtyMark = false;
 
-                    // Mark as dirty when history changes (annotations added/interactions/undo/redo)
-                    vm.IsDirty = true;
-                    QueueAutoCopyImageToClipboard(vm);
-                }
-            });
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (DataContext is MainViewModel vm)
+                    {
+                        UpdateViewModelHistoryState(vm);
+                        vm.RecalculateNumberCounter(_editorCore.Annotations);
+
+                        if (!suppressDirtyMark)
+                        {
+                            // Mark as dirty when history changes due to a user edit.
+                            vm.IsDirty = true;
+                        }
+
+                        QueueAutoCopyImageToClipboard(vm);
+                    }
+                });
+            };
 
             // Capture wheel events in tunneling phase so ScrollViewer doesn't scroll when using Ctrl+wheel zoom.
             AddHandler(PointerWheelChangedEvent, OnPreviewPointerWheelChanged, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
@@ -202,6 +216,8 @@ namespace ShareX.ImageEditor.Presentation.Views
             {
                 vm.DpiScale = scaling;
             }
+
+            UpdateCursorForTool();
 
             // Force an immediate overlay canvas refresh after the DPI change so that
             // selection handles reposition correctly on the rescaled canvas.
@@ -324,21 +340,29 @@ namespace ShareX.ImageEditor.Presentation.Views
                     // But Apply... methods limit damage.
 
                     // Don't sync stroke properties from ImageAnnotation, effect annotations,
-                    // or SmartEraser. They use nonstandard option semantics and would
-                    // clobber the shared defaults for other tools.
+                    // Spotlight, or SmartEraser. They use nonstandard option semantics and
+                    // would clobber the shared defaults for other tools.
                     if (vm.SelectedAnnotation is not ImageAnnotation
                         && vm.SelectedAnnotation is not BaseEffectAnnotation
+                        && vm.SelectedAnnotation is not SpotlightAnnotation
                         && vm.SelectedAnnotation is not SmartEraserAnnotation)
                     {
                         vm.SelectedColor = vm.SelectedAnnotation.StrokeColor;
                         vm.StrokeWidth = (int)vm.SelectedAnnotation.StrokeWidth;
                         vm.ShadowEnabled = vm.SelectedAnnotation.ShadowEnabled;
+                        vm.ShadowColorValue = Avalonia.Media.Color.Parse(vm.SelectedAnnotation.ShadowColor);
+                        vm.ShadowBlurRadius = vm.SelectedAnnotation.ShadowBlurRadius;
+                        vm.ShadowOpacity = vm.SelectedAnnotation.ShadowOpacity;
+                        vm.ShadowOffsetX = vm.SelectedAnnotation.ShadowOffsetX;
+                        vm.ShadowOffsetY = vm.SelectedAnnotation.ShadowOffsetY;
                     }
 
                     if (vm.SelectedAnnotation is NumberAnnotation num)
                     {
                         vm.FontSize = num.FontSize;
+                        vm.TextBold = num.IsBold;
                         vm.FillColor = num.FillColor;
+                        vm.SpeechBalloonTail = num.TailEnabled;
                         if (!string.IsNullOrEmpty(num.TextColor))
                             vm.TextColorValue = Avalonia.Media.Color.Parse(num.TextColor);
                     }
@@ -346,9 +370,9 @@ namespace ShareX.ImageEditor.Presentation.Views
                     {
                         vm.FontSize = text.FontSize;
                         vm.SelectedFontFamily = text.FontFamily;
+                        vm.SelectedTextHorizontalAlignment = text.HorizontalAlignment;
                         vm.TextBold = text.IsBold;
                         vm.TextItalic = text.IsItalic;
-                        vm.TextUnderline = text.IsUnderline;
                         if (!string.IsNullOrEmpty(text.TextColor))
                             vm.TextColorValue = Avalonia.Media.Color.Parse(text.TextColor);
                     }
@@ -356,15 +380,32 @@ namespace ShareX.ImageEditor.Presentation.Views
                     {
                         vm.FontSize = balloon.FontSize;
                         vm.SelectedFontFamily = balloon.FontFamily;
+                        vm.SelectedTextHorizontalAlignment = balloon.HorizontalAlignment;
+                        vm.TextBold = balloon.IsBold;
+                        vm.TextItalic = balloon.IsItalic;
                         vm.FillColor = balloon.FillColor;
                         vm.CornerRadius = balloon.CornerRadius;
+                        vm.SpeechBalloonTail = balloon.TailEnabled;
                         if (!string.IsNullOrEmpty(balloon.TextColor))
                             vm.TextColorValue = Avalonia.Media.Color.Parse(balloon.TextColor);
                     }
                     else if (vm.SelectedAnnotation is RectangleAnnotation rect && vm.SelectedAnnotation is not SmartEraserAnnotation)
                     {
+                        vm.SelectedBorderStyle = rect.BorderStyle;
                         vm.FillColor = rect.FillColor;
                         vm.CornerRadius = rect.CornerRadius;
+                    }
+                    else if (vm.SelectedAnnotation is LineAnnotation line)
+                    {
+                        vm.SelectedBorderStyle = line.BorderStyle;
+                    }
+                    else if (vm.SelectedAnnotation is FreehandAnnotation freehand)
+                    {
+                        vm.SelectedBorderStyle = freehand.BorderStyle;
+                    }
+                    else if (vm.SelectedAnnotation is CursorAnnotation cursor)
+                    {
+                        vm.SelectedCursorType = cursor.CursorType;
                     }
                     else if (vm.SelectedAnnotation is ArrowAnnotation arrow)
                     {
@@ -372,11 +413,24 @@ namespace ShareX.ImageEditor.Presentation.Views
                     }
                     else if (vm.SelectedAnnotation is EllipseAnnotation ellipse)
                     {
+                        vm.SelectedBorderStyle = ellipse.BorderStyle;
                         vm.FillColor = ellipse.FillColor;
+                    }
+                    else if (vm.SelectedAnnotation is SpotlightAnnotation spotlight)
+                    {
+                        vm.EffectStrength = (int)Math.Round(
+                            spotlight.DarkenOpacity / 255f * MainViewModel.GetMaxEffectStrength(EditorTool.Spotlight),
+                            MidpointRounding.AwayFromZero);
+                        vm.SpotlightBlur = spotlight.BlurAmount;
+                        vm.EffectEllipse = spotlight.IsEllipse;
                     }
                     else if (vm.SelectedAnnotation is BaseEffectAnnotation effect)
                     {
                         vm.EffectStrength = (int)effect.Amount;
+                        if (effect is MagnifyAnnotation magnify)
+                        {
+                            vm.EffectEllipse = magnify.IsEllipse;
+                        }
                         if (effect is HighlightAnnotation highlight)
                         {
                             vm.FillColor = highlight.FillColor;
@@ -426,6 +480,7 @@ namespace ShareX.ImageEditor.Presentation.Views
                 vm.DuplicateRequested += OnDuplicateRequested;
                 vm.ZoomToFitRequested += OnZoomToFitRequested;
                 vm.FlattenRequested += OnFlattenRequested;
+                vm.ImageInsertionRequested += OnImageInsertionRequested;
                 vm.EmojiInsertionRequested += OnEmojiInsertionRequested;
 
                 // File menu event handlers (Image Editor Mode)
@@ -438,6 +493,8 @@ namespace ShareX.ImageEditor.Presentation.Views
                 vm.CopyRequested += OnCopyImageRequested;
                 vm.SaveRequested += OnSaveRequested;
                 vm.SaveAsRequested += OnSaveAsRequested;
+                vm.OpenOptionsPanelRequested += OnOpenOptionsPanelRequested;
+                vm.FileMenuRequested += OnFileMenuRequested;
 
                 // Original code subscribed to vm.PropertyChanged
                 vm.PropertyChanged += OnViewModelPropertyChanged;
@@ -498,12 +555,17 @@ namespace ShareX.ImageEditor.Presentation.Views
                 vm.LoadFromClipboardRequested -= OnLoadFromClipboardRequested;
                 vm.LoadFromUrlRequested -= OnLoadFromUrlRequested;
                 vm.LoadRecentFileRequested -= OnLoadRecentFileRequested;
+                vm.CopyRequested -= OnCopyImageRequested;
                 vm.SaveRequested -= OnSaveRequested;
                 vm.SaveAsRequested -= OnSaveAsRequested;
+                vm.OpenOptionsPanelRequested -= OnOpenOptionsPanelRequested;
+                vm.FileMenuRequested -= OnFileMenuRequested;
+                vm.ImageInsertionRequested -= OnImageInsertionRequested;
                 vm.EmojiInsertionRequested -= OnEmojiInsertionRequested;
             }
 
             UnhookAnnotationToolbarEvents();
+            StopEasterEggs();
             _selectionController.RequestUpdateEffect -= OnRequestUpdateEffect;
             ClearEffectPreviewCache();
             SetPlatformSettings(null);
@@ -521,7 +583,20 @@ namespace ShareX.ImageEditor.Presentation.Views
 
         private void OnThemeChanged(object? sender, ThemeVariant theme)
         {
-            Dispatcher.UIThread.Post(() => ApplyTheme(theme));
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (ShouldUseSystemTheme())
+                {
+                    UpdateTheme();
+                }
+
+                else
+                {
+                    ApplyTheme(theme);
+                }
+
+                QueueAnnotationToolbarAccentRefresh();
+            });
         }
 
         private void RefreshPlatformColorTracking()
@@ -541,6 +616,15 @@ namespace ShareX.ImageEditor.Presentation.Views
 
             UpdateTheme(colorValues);
             UpdateAccentColor(colorValues);
+            QueueAnnotationToolbarAccentRefresh();
+        }
+
+        private void QueueAnnotationToolbarAccentRefresh()
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                this.FindControl<AnnotationToolbar>("AnnotationToolbarControl")?.RefreshAccentBrushes();
+            }, DispatcherPriority.Render);
         }
 
         private bool ShouldUseSystemTheme()
@@ -595,7 +679,7 @@ namespace ShareX.ImageEditor.Presentation.Views
                 return;
             }
 
-            ApplyTheme(ThemeManager.GetCurrentTheme());
+            ApplyTheme(MapConfiguredTheme());
         }
 
         private void ApplyTheme(ThemeVariant theme)
@@ -624,6 +708,25 @@ namespace ShareX.ImageEditor.Presentation.Views
                 : ThemeManager.ShareXDark;
         }
 
+        private ThemeVariant MapConfiguredTheme()
+        {
+            if (DataContext is MainViewModel { Options.Theme: var configuredTheme })
+            {
+                if (IsLightTheme(configuredTheme))
+                {
+                    return ThemeManager.ShareXLight;
+                }
+
+                if (!string.IsNullOrWhiteSpace(configuredTheme) &&
+                    configuredTheme.Contains("Dark", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ThemeManager.ShareXDark;
+                }
+            }
+
+            return ThemeManager.GetCurrentTheme();
+        }
+
         private static bool IsLightTheme(string? themeName)
         {
             return !string.IsNullOrWhiteSpace(themeName) &&
@@ -632,21 +735,42 @@ namespace ShareX.ImageEditor.Presentation.Views
 
         private void UpdateAccentColor(PlatformColorValues? colorValues = null)
         {
-            if (!ShouldUseSystemAccentColor())
+            if (ShouldUseSystemAccentColor())
             {
+                colorValues ??= _platformSettings?.GetColorValues()
+                    ?? this.GetPlatformSettings()?.GetColorValues()
+                    ?? Application.Current?.PlatformSettings?.GetColorValues();
+
+                if (colorValues == null || colorValues.AccentColor1.A == 0)
+                {
+                    return;
+                }
+
+                ApplyAccentColor(colorValues.AccentColor1);
                 return;
             }
 
-            colorValues ??= _platformSettings?.GetColorValues()
-                ?? this.GetPlatformSettings()?.GetColorValues()
-                ?? Application.Current?.PlatformSettings?.GetColorValues();
-
-            if (colorValues == null || colorValues.AccentColor1.A == 0)
+            if (TryGetConfiguredAccentColor(out Color accentColor))
             {
-                return;
+                ApplyAccentColor(accentColor);
+            }
+        }
+
+        private bool TryGetConfiguredAccentColor(out Color accentColor)
+        {
+            if (DataContext is MainViewModel { Options.AccentColorHex: var accentColorHex } &&
+                Color.TryParse(accentColorHex, out accentColor) &&
+                accentColor.A != 0)
+            {
+                return true;
             }
 
-            Color startColor = colorValues.AccentColor1;
+            accentColor = default;
+            return false;
+        }
+
+        private void ApplyAccentColor(Color startColor)
+        {
             Color endColor = DarkenColor(startColor, 0.10);
             Color foregroundColor = GetAccentForegroundColor(startColor, endColor);
 
@@ -896,7 +1020,61 @@ namespace ShareX.ImageEditor.Presentation.Views
                         EnsureEffectBrowserPanel(vm).FocusSearchBox();
                     }
                 }
+                else if (e.PropertyName == nameof(MainViewModel.StepStartNumber))
+                {
+                    vm.RecalculateNumberCounter(_editorCore.Annotations);
+                }
+                else if (e.PropertyName == nameof(MainViewModel.SelectedTextHorizontalAlignment))
+                {
+                    ApplySelectedTextHorizontalAlignment(vm.SelectedTextHorizontalAlignment);
+                }
+                else if (e.PropertyName == nameof(MainViewModel.SelectedStepType))
+                {
+                    ApplyStepTypeToAnnotations(vm.SelectedStepType);
+                }
+                else if (e.PropertyName == nameof(MainViewModel.EditorUseSystemTheme) ||
+                    e.PropertyName == nameof(MainViewModel.EditorTheme) ||
+                    e.PropertyName == nameof(MainViewModel.EditorUseSystemAccentColor) ||
+                    e.PropertyName == nameof(MainViewModel.EditorAccentColor) ||
+                    e.PropertyName == nameof(MainViewModel.EditorAccentColorHex))
+                {
+                    RefreshPlatformColorTracking();
+                }
             }
+        }
+
+        private void OnOpenOptionsPanelRequested(object? sender, EventArgs e)
+        {
+            if (DataContext is not MainViewModel vm)
+            {
+                return;
+            }
+
+            if (vm.IsEffectsPanelOpen && vm.EffectsPanelContent is EditorOptionsPanel)
+            {
+                if (vm.CloseEffectsPanelCommand.CanExecute(null))
+                {
+                    vm.CloseEffectsPanelCommand.Execute(null);
+                }
+
+                return;
+            }
+
+            if (vm.IsEffectsPanelOpen && vm.CloseEffectsPanelCommand.CanExecute(null))
+            {
+                vm.CloseEffectsPanelCommand.Execute(null);
+            }
+
+            vm.EffectsPanelContent = new EditorOptionsPanel
+            {
+                DataContext = vm
+            };
+            vm.IsEffectsPanelOpen = true;
+        }
+
+        private void OnFileMenuRequested(object? sender, EventArgs e)
+        {
+            this.FindControl<AnnotationToolbar>("AnnotationToolbarControl")?.OpenFileMenu();
         }
 
         private EffectBrowserPanel EnsureEffectBrowserPanel(MainViewModel vm)
@@ -936,9 +1114,40 @@ namespace ShareX.ImageEditor.Presentation.Views
             return vm.ActiveTool switch
             {
                 EditorTool.Select => ArrowCursor,
-                EditorTool.Crop or EditorTool.CutOut => CursorAssetLoader.GetCrosshairCursor(),
-                _ => CursorAssetLoader.GetCrosshairCursor()
+                EditorTool.Crop or EditorTool.CutOut => GetCrosshairCursor(),
+                _ => GetCrosshairCursor()
             };
+        }
+
+        internal Cursor GetCrosshairCursor()
+        {
+            return CursorAssetLoader.GetCrosshairCursor(GetCurrentRenderScaling());
+        }
+
+        internal Cursor GetOpenHandCursor()
+        {
+            return CursorAssetLoader.GetOpenHandCursor(GetCurrentRenderScaling());
+        }
+
+        internal Cursor GetClosedHandCursor()
+        {
+            return CursorAssetLoader.GetClosedHandCursor(GetCurrentRenderScaling());
+        }
+
+        private Cursor GetCustomCursor(CursorAssetLoader.CustomCursorKind cursorAsset)
+        {
+            return cursorAsset switch
+            {
+                CursorAssetLoader.CustomCursorKind.ClosedHand => GetClosedHandCursor(),
+                CursorAssetLoader.CustomCursorKind.Crosshair => GetCrosshairCursor(),
+                _ => GetOpenHandCursor()
+            };
+        }
+
+        private double GetCurrentRenderScaling()
+        {
+            double scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? _lastRenderScaling;
+            return double.IsFinite(scaling) && scaling > 0 ? scaling : 1.0;
         }
 
         internal void ApplyAnnotationCursor(Control? control, Cursor cursor)
@@ -964,20 +1173,41 @@ namespace ShareX.ImageEditor.Presentation.Views
             {
                 if (_selectionController.IsInteractionActive || _zoomController.IsPanning || _inputController.IsCropInteractionActive)
                 {
-                    ApplyInteractionCursor(_interactionCursorOverride);
+                    if (_interactionCursorAsset is CursorAssetLoader.CustomCursorKind interactionCursorAsset)
+                    {
+                        ApplyInteractionCursor(GetCustomCursor(interactionCursorAsset), interactionCursorAsset);
+                    }
+                    else
+                    {
+                        ApplyInteractionCursor(_interactionCursorOverride);
+                    }
                 }
                 else
                 {
                     _interactionCursorOverride = null;
+                    _interactionCursorAsset = null;
                     HideInteractionCaptureLayer();
                 }
             }
 
+            var canvasScrollViewer = this.FindControl<ScrollViewer>("CanvasScrollViewer");
+            var previewFrame = this.FindControl<Border>("PreviewFrame");
             var annotationCanvas = this.FindControl<Canvas>("AnnotationCanvas");
             var overlayCanvas = this.FindControl<Canvas>("OverlayCanvas");
-            if (annotationCanvas == null && overlayCanvas == null) return;
+            if (canvasScrollViewer == null && previewFrame == null && annotationCanvas == null && overlayCanvas == null) return;
 
             Cursor cursor = GetCursorForActiveTool();
+            Cursor surfaceCursor = vm.HasPreviewImage ? cursor : ArrowCursor;
+
+            if (canvasScrollViewer != null)
+            {
+                canvasScrollViewer.Cursor = surfaceCursor;
+            }
+
+            if (previewFrame != null)
+            {
+                previewFrame.Cursor = surfaceCursor;
+            }
 
             if (annotationCanvas != null)
             {
@@ -1017,9 +1247,10 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
         }
 
-        internal void ApplyInteractionCursor(Cursor cursor)
+        internal void ApplyInteractionCursor(Cursor cursor, CursorAssetLoader.CustomCursorKind? cursorAsset = null)
         {
             _interactionCursorOverride = cursor;
+            _interactionCursorAsset = cursorAsset;
             var interactionLayer = this.FindControl<Border>("InteractionCaptureLayer");
             if (interactionLayer != null)
             {
@@ -1029,9 +1260,25 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
         }
 
-        internal void BeginInteractionCursorCapture(IPointer pointer, Cursor cursor)
+        internal void ApplyInteractionCursor(CursorAssetLoader.CustomCursorKind cursorAsset)
         {
-            ApplyInteractionCursor(cursor);
+            ApplyInteractionCursor(GetCustomCursor(cursorAsset), cursorAsset);
+        }
+
+        internal void BeginInteractionCursorCapture(IPointer pointer, Cursor cursor, CursorAssetLoader.CustomCursorKind? cursorAsset = null)
+        {
+            ApplyInteractionCursor(cursor, cursorAsset);
+
+            var interactionLayer = this.FindControl<Border>("InteractionCaptureLayer");
+            if (interactionLayer != null)
+            {
+                pointer.Capture(interactionLayer);
+            }
+        }
+
+        internal void BeginInteractionCursorCapture(IPointer pointer, CursorAssetLoader.CustomCursorKind cursorAsset)
+        {
+            ApplyInteractionCursor(cursorAsset);
 
             var interactionLayer = this.FindControl<Border>("InteractionCaptureLayer");
             if (interactionLayer != null)
@@ -1048,6 +1295,7 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
 
             _interactionCursorOverride = null;
+            _interactionCursorAsset = null;
             HideInteractionCaptureLayer();
             UpdateCursorForTool();
         }
@@ -1177,7 +1425,7 @@ namespace ShareX.ImageEditor.Presentation.Views
             }, DispatcherPriority.Background);
         }
 
-        private void AutoCopyImageToClipboard(MainViewModel vm)
+        private async void AutoCopyImageToClipboard(MainViewModel vm)
         {
             if (!vm.Options.AutoCopyImageToClipboard || !vm.HasPreviewImage)
             {
@@ -1186,7 +1434,7 @@ namespace ShareX.ImageEditor.Presentation.Views
 
             try
             {
-                vm.RequestCopyToClipboard();
+                await vm.RequestCopyToClipboardAsync();
             }
             catch (Exception ex)
             {
@@ -1204,6 +1452,11 @@ namespace ShareX.ImageEditor.Presentation.Views
         private void OnScrollViewerPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             _zoomController.OnScrollViewerPointerPressed(sender, e);
+
+            if (!e.Handled)
+            {
+                _inputController.OnCanvasPointerPressed(sender, e);
+            }
         }
 
         private void OnScrollViewerPointerMoved(object? sender, PointerEventArgs e)
@@ -1231,13 +1484,47 @@ namespace ShareX.ImageEditor.Presentation.Views
             _inputController.OnCanvasPointerReleased(sender, e);
         }
 
+        private void OnNotificationPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.DismissNotification();
+                e.Handled = true;
+            }
+        }
+
+        private void OnNotificationPointerEntered(object? sender, PointerEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.SetNotificationHoverState(true);
+            }
+        }
+
+        private void OnNotificationPointerExited(object? sender, PointerEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.SetNotificationHoverState(false);
+            }
+        }
+
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
+            _inputController.OnKeyDown(sender ?? this, e);
+
             // Skip shortcuts when the user is typing in a text field
             if (_parentWindow?.FocusManager?.GetFocusedElement() is TextBox) return;
 
             // Skip shortcuts when a modal dialog is open (e.g. emoji picker search box)
             if (DataContext is MainViewModel { IsModalOpen: true }) return;
+
+            if (HandleEasterEggKeyDown(e)) return;
+
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && !_inputController.IsDrawingActive)
+            {
+                _selectionController.RefreshHoverFeedback(e.KeyModifiers);
+            }
 
             if (DataContext is MainViewModel vm)
             {
@@ -1259,6 +1546,12 @@ namespace ShareX.ImageEditor.Presentation.Views
                 }
                 else if (e.KeyModifiers.HasFlag(KeyModifiers.Control | KeyModifiers.Shift))
                 {
+                    if (vm.TrySelectToolForToolbarHotkey(e.Key, e.KeyModifiers))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
                     switch (e.Key)
                     {
                         case Key.Z: vm.RedoCommand.Execute(null); e.Handled = true; break;
@@ -1270,15 +1563,29 @@ namespace ShareX.ImageEditor.Presentation.Views
                             }
                             break;
                         case Key.F: vm.FlattenImageCommand.Execute(null); e.Handled = true; break;
+                        case Key.P:
+                            if (vm.PrintCommand.CanExecute(null))
+                            {
+                                vm.PrintCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                            break;
                         case Key.S: vm.SaveAsCommand.Execute(null); e.Handled = true; break;
                     }
                 }
                 else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && !e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                 {
+                    if (vm.TrySelectToolForToolbarHotkey(e.Key, e.KeyModifiers))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
                     switch (e.Key)
                     {
                         case Key.Z: vm.UndoCommand.Execute(null); e.Handled = true; break;
                         case Key.Y: vm.RedoCommand.Execute(null); e.Handled = true; break;
+                        case Key.H: vm.ToggleToolbarsCommand.Execute(null); e.Handled = true; break;
                         case Key.X: vm.CutAnnotationCommand.Execute(null); e.Handled = true; break;
                         case Key.C:
                             if (vm.CopyCommand.CanExecute(null))
@@ -1319,8 +1626,22 @@ namespace ShareX.ImageEditor.Presentation.Views
                         _selectionController.MoveSelectedShape(dx, dy);
                         e.Handled = true;
                     }
+                    else if (e.KeyModifiers == KeyModifiers.Shift)
+                    {
+                        if (vm.TrySelectToolForToolbarHotkey(e.Key, e.KeyModifiers))
+                        {
+                            e.Handled = true;
+                            return;
+                        }
+                    }
                     else if (e.KeyModifiers == KeyModifiers.None)
                     {
+                        if (vm.TrySelectToolForToolbarHotkey(e.Key, e.KeyModifiers))
+                        {
+                            e.Handled = true;
+                            return;
+                        }
+
                         // Tool shortcuts
                         switch (e.Key)
                         {
@@ -1329,32 +1650,12 @@ namespace ShareX.ImageEditor.Presentation.Views
                             case Key.PageUp: _editorCore.BringForward(); e.Handled = true; break;
                             case Key.PageDown: _editorCore.SendBackward(); e.Handled = true; break;
 
-                            case Key.V: vm.SelectToolCommand.Execute(EditorTool.Select); e.Handled = true; break;
-                            case Key.R: vm.SelectToolCommand.Execute(EditorTool.Rectangle); e.Handled = true; break;
-                            case Key.E: vm.SelectToolCommand.Execute(EditorTool.Ellipse); e.Handled = true; break;
-                            case Key.L: vm.SelectToolCommand.Execute(EditorTool.Line); e.Handled = true; break;
-                            case Key.A: vm.SelectToolCommand.Execute(EditorTool.Arrow); e.Handled = true; break;
-                            case Key.F: vm.SelectToolCommand.Execute(EditorTool.Freehand); e.Handled = true; break; // Freehand
-                            case Key.T: vm.SelectToolCommand.Execute(EditorTool.Text); e.Handled = true; break;
-                            case Key.J: vm.SelectToolCommand.Execute(EditorTool.Emoji); e.Handled = true; break;
-                            case Key.O: vm.SelectToolCommand.Execute(EditorTool.SpeechBalloon); e.Handled = true; break;
-                            case Key.N: vm.SelectToolCommand.Execute(EditorTool.Step); e.Handled = true; break;
-                            case Key.W: vm.SelectToolCommand.Execute(EditorTool.SmartEraser); e.Handled = true; break;
-                            case Key.S: vm.SelectToolCommand.Execute(EditorTool.Spotlight); e.Handled = true; break;
-                            case Key.B: vm.SelectToolCommand.Execute(EditorTool.Blur); e.Handled = true; break;
-                            case Key.P: vm.SelectToolCommand.Execute(EditorTool.Pixelate); e.Handled = true; break;
-                            case Key.I: vm.SelectToolCommand.Execute(EditorTool.Image); e.Handled = true; break;
-                            case Key.H: vm.SelectToolCommand.Execute(EditorTool.Highlight); e.Handled = true; break;
-                            case Key.M: vm.SelectToolCommand.Execute(EditorTool.Magnify); e.Handled = true; break;
-                            case Key.C: vm.SelectToolCommand.Execute(EditorTool.Crop); e.Handled = true; break;
-                            case Key.U: vm.SelectToolCommand.Execute(EditorTool.CutOut); e.Handled = true; break;
-
                             case Key.Enter:
                                 if (_inputController.TryConfirmCrop())
                                 {
                                     e.Handled = true;
                                 }
-                                else if (vm.UseContinueWorkflow)
+                                else if (vm.ShowTaskButtons)
                                 {
                                     vm.ContinueCommand.Execute(null);
                                     e.Handled = true;
@@ -1368,6 +1669,8 @@ namespace ShareX.ImageEditor.Presentation.Views
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
+            _inputController.OnKeyUp(sender ?? this, e);
+
             if (DataContext is MainViewModel vm && e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
             {
                 // Close emoji modal dialog on Escape (before TextBox short-circuit)
@@ -1392,6 +1695,11 @@ namespace ShareX.ImageEditor.Presentation.Views
 
             // Skip shortcuts when the user is typing in a text field
             if (_parentWindow?.FocusManager?.GetFocusedElement() is TextBox) return;
+
+            if (e.Key is Key.LeftCtrl or Key.RightCtrl && !_inputController.IsDrawingActive)
+            {
+                _selectionController.RefreshHoverFeedback(e.KeyModifiers);
+            }
 
             if (DataContext is MainViewModel vm2 && e.KeyModifiers == KeyModifiers.None)
             {
@@ -1706,6 +2014,34 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
         }
 
+        private void OnGradientColor1PreviewPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            OpenBackgroundColorPicker(BackgroundGradientColor1Popup, BackgroundGradientColor2Popup, BackgroundColorPopup);
+            e.Handled = true;
+        }
+
+        private void OnGradientColor2PreviewPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            OpenBackgroundColorPicker(BackgroundGradientColor2Popup, BackgroundGradientColor1Popup, BackgroundColorPopup);
+            e.Handled = true;
+        }
+
+        private void OnBackgroundColorPreviewPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            OpenBackgroundColorPicker(BackgroundColorPopup, BackgroundGradientColor1Popup, BackgroundGradientColor2Popup);
+            e.Handled = true;
+        }
+
+        private static void OpenBackgroundColorPicker(Popup popupToOpen, params Popup[] popupsToClose)
+        {
+            foreach (Popup popupToClose in popupsToClose)
+            {
+                popupToClose.IsOpen = false;
+            }
+
+            popupToOpen.IsOpen = true;
+        }
+
         private void OnNewImageRequested(object? sender, EventArgs e)
         {
             if (DataContext is not MainViewModel vm)
@@ -1733,6 +2069,7 @@ namespace ShareX.ImageEditor.Presentation.Views
 
                     // Load fresh image into core (clears history and annotations)
                     _skipNextCoreImageChanged = true;
+                    _suppressNextHistoryDirtyMark = true;
                     _editorCore.LoadImage(skBitmap);
 
                     // Initialize canvas control
@@ -1753,6 +2090,8 @@ namespace ShareX.ImageEditor.Presentation.Views
                     {
                         _isSyncingToVM = false;
                     }
+
+                    vm.ShowNewImageNotification(skBitmap.Width, skBitmap.Height);
                 },
                 onCancel: () =>
                 {
@@ -1786,6 +2125,8 @@ namespace ShareX.ImageEditor.Presentation.Views
 
             if (files.Count > 0)
             {
+                string filePath = files[0].Path.LocalPath;
+
                 using var stream = await files[0].OpenReadAsync();
                 using var memStream = new MemoryStream();
                 await stream.CopyToAsync(memStream);
@@ -1794,7 +2135,8 @@ namespace ShareX.ImageEditor.Presentation.Views
                 var skBitmap = SKBitmap.Decode(memStream);
                 if (skBitmap == null) return;
 
-                LoadBitmapIntoEditor(vm, skBitmap, files[0].Path.LocalPath);
+                LoadBitmapIntoEditor(vm, skBitmap, filePath);
+                vm.ShowOpenImageNotification(filePath);
             }
         }
 
@@ -2037,6 +2379,7 @@ namespace ShareX.ImageEditor.Presentation.Views
 
                 vm.CloseModalCommand.Execute(null);
                 LoadBitmapIntoEditor(vm, skBitmap, filePath);
+                vm.ShowOpenImageNotification(filePath);
             }
             catch (Exception ex)
             {
@@ -2055,6 +2398,7 @@ namespace ShareX.ImageEditor.Presentation.Views
 
             // Load fresh image into core (clears history and annotations)
             _skipNextCoreImageChanged = true;
+            _suppressNextHistoryDirtyMark = true;
             _editorCore.LoadImage(skBitmap);
 
             // Initialize canvas control
@@ -2095,7 +2439,7 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
         }
 
-        private async void OnCopyImageRequested()
+        private async Task OnCopyImageRequested()
         {
             if (DataContext is not MainViewModel vm) return;
             if (vm.HasHostCopyHandler) return;
@@ -2120,32 +2464,35 @@ namespace ShareX.ImageEditor.Presentation.Views
             await clipboard.SetDataAsync(data);
         }
 
-        private void OnSaveRequested()
+        private Task<string?> OnSaveRequested()
         {
-            if (DataContext is not MainViewModel vm) return;
-            if (vm.HasHostSaveHandler) return;
+            if (DataContext is not MainViewModel vm) return Task.FromResult<string?>(null);
+            if (vm.HasHostSaveHandler) return Task.FromResult<string?>(null);
 
             if (!string.IsNullOrEmpty(vm.ImageFilePath))
             {
                 SaveSnapshotToFile(vm.ImageFilePath!);
                 vm.IsDirty = false;
+                return Task.FromResult<string?>(vm.ImageFilePath);
             }
+
+            return Task.FromResult<string?>(null);
         }
 
-        private async void OnSaveAsRequested()
+        private async Task<string?> OnSaveAsRequested()
         {
-            if (DataContext is not MainViewModel vm) return;
-            if (vm.HasHostSaveAsHandler) return;
+            if (DataContext is not MainViewModel vm) return null;
+            if (vm.HasHostSaveAsHandler) return null;
 
-            await SaveAsAsync();
+            return await SaveAsAsync();
         }
 
-        private async Task SaveAsAsync()
+        private async Task<string?> SaveAsAsync()
         {
-            if (DataContext is not MainViewModel vm) return;
+            if (DataContext is not MainViewModel vm) return null;
 
             TopLevel? topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel?.StorageProvider == null) return;
+            if (topLevel?.StorageProvider == null) return null;
 
             IStorageFile? file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
@@ -2167,7 +2514,10 @@ namespace ShareX.ImageEditor.Presentation.Views
                 SaveSnapshotToFile(path);
                 vm.ImageFilePath = path;
                 vm.IsDirty = false;
+                return path;
             }
+
+            return null;
         }
 
         private void SaveSnapshotToFile(string path)

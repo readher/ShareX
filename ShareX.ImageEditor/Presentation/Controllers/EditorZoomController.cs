@@ -232,14 +232,38 @@ public class EditorZoomController
         _isPanning = true;
         _panStart = e.GetPosition(scrollViewer);
         _panOrigin = scrollViewer.Offset;
-        _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.GetClosedHandCursor());
+        _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
         UpdateCanvasCursorsForPanning(true);
         e.Handled = true;
     }
 
     public void OnScrollViewerPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!_isPanning || sender is not ScrollViewer scrollViewer) return;
+        if (sender is not ScrollViewer scrollViewer) return;
+
+        var properties = e.GetCurrentPoint(scrollViewer).Properties;
+
+        if (_isPanning && !properties.IsMiddleButtonPressed)
+        {
+            StopPanning(scrollViewer, e.Pointer);
+            return;
+        }
+
+        if (!_isPanning)
+        {
+            if (!properties.IsMiddleButtonPressed)
+            {
+                return;
+            }
+
+            _isPanning = true;
+            _panStart = e.GetPosition(scrollViewer);
+            _panOrigin = scrollViewer.Offset;
+            _view.BeginInteractionCursorCapture(e.Pointer, CursorAssetLoader.CustomCursorKind.ClosedHand);
+            UpdateCanvasCursorsForPanning(true);
+            e.Handled = true;
+            return;
+        }
 
         var current = e.GetPosition(scrollViewer);
         var delta = current - _panStart;
@@ -264,19 +288,30 @@ public class EditorZoomController
 
         if (_isPanning)
         {
-            _isPanning = false;
-            scrollViewer.Cursor = null;
-            UpdateCanvasCursorsForPanning(false);
-            e.Pointer.Capture(null);
+            var properties = e.GetCurrentPoint(scrollViewer).Properties;
+            if (properties.IsMiddleButtonPressed)
+            {
+                return;
+            }
+
+            StopPanning(scrollViewer, e.Pointer);
             e.Handled = true;
         }
+    }
+
+    private void StopPanning(ScrollViewer scrollViewer, IPointer pointer)
+    {
+        _isPanning = false;
+        scrollViewer.Cursor = null;
+        UpdateCanvasCursorsForPanning(false);
+        pointer.Capture(null);
     }
 
     private void UpdateCanvasCursorsForPanning(bool isPanning)
     {
         if (isPanning)
         {
-            _view.ApplyInteractionCursor(CursorAssetLoader.GetClosedHandCursor());
+            _view.ApplyInteractionCursor(CursorAssetLoader.CustomCursorKind.ClosedHand);
         }
         else
         {
@@ -294,8 +329,8 @@ public class EditorZoomController
         return vm.ActiveTool switch
         {
             EditorTool.Select => ArrowCursor,
-            EditorTool.Crop or EditorTool.CutOut => CursorAssetLoader.GetCrosshairCursor(),
-            _ => CursorAssetLoader.GetCrosshairCursor()
+            EditorTool.Crop or EditorTool.CutOut => _view.GetCrosshairCursor(),
+            _ => _view.GetCrosshairCursor()
         };
     }
 

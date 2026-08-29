@@ -152,12 +152,30 @@ namespace ShareX.ImageEditor.Presentation.ViewModels
                 return;
             }
 
-            _editorCore.Crop(new SkiaSharp.SKRect(x, y, x + width, y + height));
+            if (_editorCore.Crop(new SkiaSharp.SKRect(x, y, x + width, y + height)))
+            {
+                (int newWidth, int newHeight) = GetCurrentImageSize();
+                ShowImageCroppedNotification(newWidth, newHeight);
+            }
         }
 
         public void CutOutImage(int startPos, int endPos, bool isVertical)
         {
-            _editorCore?.CutOut(startPos, endPos, isVertical);
+            if (_editorCore?.CutOut(startPos, endPos, isVertical) == true)
+            {
+                (int newWidth, int newHeight) = GetCurrentImageSize();
+                ShowImageCutOutNotification(newWidth, newHeight);
+            }
+        }
+
+        private (int Width, int Height) GetCurrentImageSize()
+        {
+            if (_editorCore?.SourceImage != null)
+            {
+                return (_editorCore.SourceImage.Width, _editorCore.SourceImage.Height);
+            }
+
+            return (0, 0);
         }
     }
 }

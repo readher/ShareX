@@ -125,29 +125,8 @@
 Nếu trường văn bản để trống thì tên bucket sẽ được sử dụng cho URL.
 Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://bucket.example.com/...</value>
   </data>
-  <data name="tpOtherUploaders.Text" xml:space="preserve">
-    <value>Trình tải lên khác</value>
-  </data>
   <data name="tpURLShorteners.Text" xml:space="preserve">
     <value>DỊch vụ rút gọn URL</value>
-  </data>
-  <data name="btnTwitterAdd.Text" xml:space="preserve">
-    <value>Thêm</value>
-  </data>
-  <data name="btnTwitterRemove.Text" xml:space="preserve">
-    <value>Xóa bỏ</value>
-  </data>
-  <data name="lblTwitterDescription.Text" xml:space="preserve">
-    <value>Tên:</value>
-  </data>
-  <data name="cbTwitterSkipMessageBox.Text" xml:space="preserve">
-    <value>Bỏ qua hộp tin nhắn tweet</value>
-  </data>
-  <data name="lblTwitterDefaultMessage.Text" xml:space="preserve">
-    <value>Tin nhắn tweet mặc định:</value>
-  </data>
-  <data name="btnTwitterNameUpdate.Text" xml:space="preserve">
-    <value>Cập nhật</value>
   </data>
   <data name="lblBitlyDomain.Text" xml:space="preserve">
     <value>Tên miền:</value>
@@ -166,15 +145,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="lblYourlsAPIURL.Text" xml:space="preserve">
     <value>API URL:</value>
-  </data>
-  <data name="llAdflyLink.Text" xml:space="preserve">
-    <value>Bạn có thể tìm thấy API key và UID ở đấy</value>
-  </data>
-  <data name="lblAdflyAPIUID.Text" xml:space="preserve">
-    <value>API UID:</value>
-  </data>
-  <data name="lblAdflyAPIKEY.Text" xml:space="preserve">
-    <value>API key:</value>
   </data>
   <data name="lblPolrAPIKey.Text" xml:space="preserve">
     <value>API key:</value>
@@ -284,15 +254,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblLambdaInfo.Text" xml:space="preserve">
     <value>Để lấy API key, đăng nhập Lambda ở https://lambda.sx/ và nhấn vào biểu tượng cài đặt ở phần trên bên phải.</value>
   </data>
-  <data name="lblJiraHost.Text" xml:space="preserve">
-    <value>Jira host: </value>
-  </data>
-  <data name="txtJiraConfigHelp.Text" xml:space="preserve">
-    <value>Biểu mẫu</value>
-  </data>
-  <data name="lblJiraIssuePrefix.Text" xml:space="preserve">
-    <value>Jira issue prefix:</value>
-  </data>
   <data name="lblLocalhostrEmail.Text" xml:space="preserve">
     <value>Email:</value>
   </data>
@@ -352,30 +313,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="cbOwnCloud81Compatibility.Text" xml:space="preserve">
     <value>Tương thích ownCloud 8.1+</value>
-  </data>
-  <data name="lblMegaPassword.Text" xml:space="preserve">
-    <value>Mật khẩu:</value>
-  </data>
-  <data name="btnMegaLogin.Text" xml:space="preserve">
-    <value>Đăng nhập</value>
-  </data>
-  <data name="lblMegaEmail.Text" xml:space="preserve">
-    <value>Email:</value>
-  </data>
-  <data name="lblMegaStatusTitle.Text" xml:space="preserve">
-    <value>Trạng thái:</value>
-  </data>
-  <data name="lblMegaFolder.Text" xml:space="preserve">
-    <value>Thư mục:</value>
-  </data>
-  <data name="btnMegaRegister.Text" xml:space="preserve">
-    <value>Đăng ký...</value>
-  </data>
-  <data name="lblMegaStatus.Text" xml:space="preserve">
-    <value>Đã thiết lập / Chưa thiết lập</value>
-  </data>
-  <data name="btnMegaRefreshFolders.Text" xml:space="preserve">
-    <value>Làm mới</value>
   </data>
   <data name="lblAmazonS3AccessKey.Text" xml:space="preserve">
     <value>Access key ID:</value>
@@ -454,21 +391,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="cbCheveretoDirectURL.Text" xml:space="preserve">
     <value>URL trực tiếp</value>
-  </data>
-  <data name="btnPicasaRefreshAlbumList.Text" xml:space="preserve">
-    <value>Làm mới danh sách album</value>
-  </data>
-  <data name="chPicasaDescription.Text" xml:space="preserve">
-    <value>Mô tả</value>
-  </data>
-  <data name="chPicasaName.Text" xml:space="preserve">
-    <value>Tên</value>
-  </data>
-  <data name="chPicasaID.Text" xml:space="preserve">
-    <value>ID</value>
-  </data>
-  <data name="lblPicasaAlbumID.Text" xml:space="preserve">
-    <value>ID của album để tải lên (Để trống = Không tải lên album)</value>
   </data>
   <data name="lblPhotobucketAccountStatus.Text" xml:space="preserve">
     <value>Đăng nhập được yêu cầu.</value>
@@ -551,24 +473,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="gbPhotobucketAlbums.Text" xml:space="preserve">
     <value>Tạo album mới</value>
   </data>
-  <data name="btnAzureStoragePortal.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnAmazonS3BucketNameOpen.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnFTPSCertificateLocationBrowse.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnSFTPKeyLocationBrowse.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnAmazonS3AccessKeyOpen.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="btnAmazonS3StorageClassHelp.Text" xml:space="preserve">
-    <value>?</value>
-  </data>
   <data name="lblAzureStorageAccessKey.Text" xml:space="preserve">
     <value>Access key:</value>
   </data>
@@ -593,14 +497,8 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="btnFTPAdd.Text" xml:space="preserve">
     <value>Thêm</value>
   </data>
-  <data name="tpAdFly.Text" xml:space="preserve">
-    <value>adf.ly</value>
-  </data>
   <data name="gbAmazonS3Advanced.Text" xml:space="preserve">
     <value>Nâng cao</value>
-  </data>
-  <data name="tpAmazonS3.Text" xml:space="preserve">
-    <value>Amazon S3</value>
   </data>
   <data name="lblLithiioApiKey.Text" xml:space="preserve">
     <value>API key:</value>
@@ -629,38 +527,11 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblB2ApplicationKeyId.Text" xml:space="preserve">
     <value>Application Key ID:</value>
   </data>
-  <data name="tpJira.Text" xml:space="preserve">
-    <value>Atlassian Jira</value>
-  </data>
   <data name="lblSeafileAuthToken.Text" xml:space="preserve">
     <value>Token xác thực:</value>
   </data>
   <data name="cbOwnCloudAutoExpire.Text" xml:space="preserve">
     <value>Tự hết hạn các liên kết đã chia sẻ</value>
-  </data>
-  <data name="tpAzureStorage.Text" xml:space="preserve">
-    <value>Azure Storage</value>
-  </data>
-  <data name="tpBackblazeB2.Text" xml:space="preserve">
-    <value>Backblaze B2</value>
-  </data>
-  <data name="tpBitly.Text" xml:space="preserve">
-    <value>bit.ly</value>
-  </data>
-  <data name="cbAzureStorageEnvironment.Items2" xml:space="preserve">
-    <value>blob.core.chinacloudapi.cn</value>
-  </data>
-  <data name="cbAzureStorageEnvironment.Items3" xml:space="preserve">
-    <value>blob.core.cloudapi.de</value>
-  </data>
-  <data name="cbAzureStorageEnvironment.Items1" xml:space="preserve">
-    <value>blob.core.usgovcloudapi.net</value>
-  </data>
-  <data name="cbAzureStorageEnvironment.Items" xml:space="preserve">
-    <value>blob.core.windows.net</value>
-  </data>
-  <data name="tpBox.Text" xml:space="preserve">
-    <value>Box</value>
   </data>
   <data name="lblGoogleCloudStorageBucket.Text" xml:space="preserve">
     <value>Tên bucket:</value>
@@ -670,9 +541,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="lblFTPSCertificateLocation.Text" xml:space="preserve">
     <value>Vị trí chứng chỉ:</value>
-  </data>
-  <data name="tpChevereto.Text" xml:space="preserve">
-    <value>Chevereto</value>
   </data>
   <data name="lblB2ManageLink.Text" xml:space="preserve">
     <value>Nhấn vào đây để tạo một Application Key hoặc kiểm soát các bucket của bạn.</value>
@@ -706,9 +574,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="lblFirebaseDomain.Text" xml:space="preserve">
     <value>Tên miền:</value>
-  </data>
-  <data name="tpDropbox.Text" xml:space="preserve">
-    <value>Dropbox</value>
   </data>
   <data name="btnSharedFolderDuplicate.Text" xml:space="preserve">
     <value>Nhân bản</value>
@@ -764,41 +629,14 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblPlikTTL.Text" xml:space="preserve">
     <value>Các tệp sẽ tự động được xóa trong</value>
   </data>
-  <data name="tpFirebaseDynamicLinks.Text" xml:space="preserve">
-    <value>Firebase Dynamic Links</value>
-  </data>
-  <data name="tpFlickr.Text" xml:space="preserve">
-    <value>Flickr</value>
-  </data>
   <data name="llPuushForgottenPassword.Text" xml:space="preserve">
     <value>Quên mật khẩu?</value>
-  </data>
-  <data name="rbFTPProtocolFTP.Text" xml:space="preserve">
-    <value>FTP</value>
-  </data>
-  <data name="tpFTP.Text" xml:space="preserve">
-    <value>FTP / FTPS / SFTP</value>
-  </data>
-  <data name="gbFTPS.Text" xml:space="preserve">
-    <value>FTPS</value>
-  </data>
-  <data name="rbFTPProtocolFTPS.Text" xml:space="preserve">
-    <value>FTPS</value>
-  </data>
-  <data name="tpYourls.Text" xml:space="preserve">
-    <value>YOURLS</value>
-  </data>
-  <data name="tpYouTube.Text" xml:space="preserve">
-    <value>YouTube</value>
   </data>
   <data name="llVgymeAccountDetailsPage.Text" xml:space="preserve">
     <value>Bạn có thể lấy key người dùng từ trang thông tin cá nhân.</value>
   </data>
   <data name="lblFirebaseWebAPIKey.Text" xml:space="preserve">
     <value>Web API key:</value>
-  </data>
-  <data name="tpVgyme.Text" xml:space="preserve">
-    <value>vgy.me</value>
   </data>
   <data name="cbAmazonS3StripExtensionVideo.Text" xml:space="preserve">
     <value>Video</value>
@@ -851,9 +689,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="cbFirebaseIsShort.Text" xml:space="preserve">
     <value>Liên kết rút gọn</value>
   </data>
-  <data name="txtJiraIssuePrefix.Text" xml:space="preserve">
-    <value>PROJECT-</value>
-  </data>
   <data name="btnSeafileGetAuthToken.Text" xml:space="preserve">
     <value>Lấy</value>
   </data>
@@ -863,35 +698,11 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="btnPaste_eeGetUserKey.Text" xml:space="preserve">
     <value>Lấy key user...</value>
   </data>
-  <data name="tpGist.Text" xml:space="preserve">
-    <value>GitHub Gist</value>
-  </data>
-  <data name="tpGoogleCloudStorage.Text" xml:space="preserve">
-    <value>Google Cloud Storage</value>
-  </data>
-  <data name="tpGoogleDrive.Text" xml:space="preserve">
-    <value>Google Drive</value>
-  </data>
-  <data name="tpGooglePhotos.Text" xml:space="preserve">
-    <value>Google Photos</value>
-  </data>
-  <data name="tpHastebin.Text" xml:space="preserve">
-    <value>Hastebin</value>
-  </data>
   <data name="lblFTPHost.Text" xml:space="preserve">
     <value>Host:</value>
   </data>
-  <data name="tpHostr.Text" xml:space="preserve">
-    <value>Hostr</value>
-  </data>
   <data name="lblFTPImage.Text" xml:space="preserve">
     <value>Ảnh:</value>
-  </data>
-  <data name="tpImageShack.Text" xml:space="preserve">
-    <value>ImageShack</value>
-  </data>
-  <data name="tpImgur.Text" xml:space="preserve">
-    <value>Imgur</value>
   </data>
   <data name="lblSFTPKeyLocation.Text" xml:space="preserve">
     <value>Vị trí tệp key:</value>
@@ -899,32 +710,8 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblSFTPKeyPassphrase.Text" xml:space="preserve">
     <value>Mã truy cập tệp key:</value>
   </data>
-  <data name="tpKutt.Text" xml:space="preserve">
-    <value>Kutt</value>
-  </data>
-  <data name="tpLambda.Text" xml:space="preserve">
-    <value>Lambda</value>
-  </data>
-  <data name="tpLithiio.Text" xml:space="preserve">
-    <value>Lithiio</value>
-  </data>
-  <data name="tpMediaFire.Text" xml:space="preserve">
-    <value>MediaFire</value>
-  </data>
-  <data name="tpMega.Text" xml:space="preserve">
-    <value>Mega</value>
-  </data>
   <data name="lblFTPName.Text" xml:space="preserve">
     <value>Tên:</value>
-  </data>
-  <data name="tpOneDrive.Text" xml:space="preserve">
-    <value>OneDrive</value>
-  </data>
-  <data name="tpOneTimeSecret.Text" xml:space="preserve">
-    <value>OneTimeSecret</value>
-  </data>
-  <data name="tpOwnCloud.Text" xml:space="preserve">
-    <value>ownCloud / Nextcloud</value>
   </data>
   <data name="rbFTPTransferModePassive.Text" xml:space="preserve">
     <value>Bị động</value>
@@ -935,38 +722,11 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblKuttPassword.Text" xml:space="preserve">
     <value>Mật khẩu:</value>
   </data>
-  <data name="tpPaste_ee.Text" xml:space="preserve">
-    <value>Paste.ee</value>
-  </data>
-  <data name="tpPastebin.Text" xml:space="preserve">
-    <value>Pastebin</value>
-  </data>
-  <data name="tpPastie.Text" xml:space="preserve">
-    <value>Pastie</value>
-  </data>
-  <data name="tpPhotobucket.Text" xml:space="preserve">
-    <value>Photobucket</value>
-  </data>
-  <data name="tpPlik.Text" xml:space="preserve">
-    <value>Plik</value>
-  </data>
-  <data name="tpPolr.Text" xml:space="preserve">
-    <value>Polr</value>
-  </data>
-  <data name="tpPomf.Text" xml:space="preserve">
-    <value>Pomf</value>
-  </data>
   <data name="lblFTPPort.Text" xml:space="preserve">
     <value>Cổng:</value>
   </data>
   <data name="lblFTPProtocol.Text" xml:space="preserve">
     <value>Giao thức:</value>
-  </data>
-  <data name="tpPushbullet.Text" xml:space="preserve">
-    <value>Pushbullet</value>
-  </data>
-  <data name="tpPuush.Text" xml:space="preserve">
-    <value>puush</value>
   </data>
   <data name="lblFTPRemoteDirectory.Text" xml:space="preserve">
     <value>Thư mục từ xa:</value>
@@ -977,24 +737,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="cbFTPRemoveFileExtension.Text" xml:space="preserve">
     <value>Bỏ phần đuôi mở rộng của tệp khỏi đường dẫn URL</value>
   </data>
-  <data name="tpSeafile.Text" xml:space="preserve">
-    <value>Seafile</value>
-  </data>
-  <data name="tpSendSpace.Text" xml:space="preserve">
-    <value>SendSpace</value>
-  </data>
-  <data name="gbSFTP.Text" xml:space="preserve">
-    <value>SFTP</value>
-  </data>
-  <data name="rbFTPProtocolSFTP.Text" xml:space="preserve">
-    <value>SFTP</value>
-  </data>
-  <data name="tpStreamable.Text" xml:space="preserve">
-    <value>Streamable</value>
-  </data>
-  <data name="tpSul.Text" xml:space="preserve">
-    <value>s-ul</value>
-  </data>
   <data name="btnFTPTest.Text" xml:space="preserve">
     <value>Kiểm tra</value>
   </data>
@@ -1003,12 +745,6 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   </data>
   <data name="lblFTPTransferMode.Text" xml:space="preserve">
     <value>Chế độ trao đổi:</value>
-  </data>
-  <data name="tpTwitter.Text" xml:space="preserve">
-    <value>Twitter</value>
-  </data>
-  <data name="tpUpaste.Text" xml:space="preserve">
-    <value>uPaste</value>
   </data>
   <data name="lblGoogleCloudStorageObjectPrefix.Text" xml:space="preserve">
     <value>Đường dẫn tải lên:</value>
@@ -1064,26 +800,11 @@ Ví dụ: nếu tên bucket là bucket.example.com thì URL sẽ là http://buck
   <data name="lblKuttHost.Text" xml:space="preserve">
     <value>Host:</value>
   </data>
-  <data name="txtJiraHost.Text" xml:space="preserve">
-    <value>http://</value>
-  </data>
-  <data name="cbSeafileAPIURL.Items1" xml:space="preserve">
-    <value>https://cloud.mein-seafile.de/api2/</value>
-  </data>
-  <data name="cbSeafileAPIURL.Items" xml:space="preserve">
-    <value>https://seacloud.cc/api2/</value>
-  </data>
-  <data name="cbSeafileIgnoreInvalidCert.Text" xml:space="preserve">
-    <value>Bỏ qua chứng chỉ SSL không hợp lệ</value>
-  </data>
   <data name="cbPastieIsPublic.Text" xml:space="preserve">
     <value>Tải lên công khai?</value>
   </data>
   <data name="cbPolrIsSecret.Text" xml:space="preserve">
     <value>Là URL bí mật</value>
-  </data>
-  <data name="gbJiraServer.Text" xml:space="preserve">
-    <value>Máy chủ Jira</value>
   </data>
   <data name="lblLambdaUploadURL.Text" xml:space="preserve">
     <value>Liên kết URL:</value>
@@ -1191,21 +912,6 @@ Sử dụng thư viện được mã hóa sẽ vô hiệu hóa chia sẻ.</value
   <data name="cbAmazonS3UsePathStyle.Text" xml:space="preserve">
     <value>Dùng yêu cầu kiểu đường dẫn (path style request)</value>
   </data>
-  <data name="tpTeknik.Text" xml:space="preserve">
-    <value>Teknik</value>
-  </data>
-  <data name="lblTeknikExpiration.Text" xml:space="preserve">
-    <value>Hết hạn:</value>
-  </data>
-  <data name="lblGooglePhotosCreateAlbumName.Text" xml:space="preserve">
-    <value>Tên album:</value>
-  </data>
-  <data name="btnGooglePhotosCreateAlbum.Text" xml:space="preserve">
-    <value>Tạo</value>
-  </data>
-  <data name="cbGooglePhotosIsPublic.Text" xml:space="preserve">
-    <value>Tải lên công khai</value>
-  </data>
   <data name="cbGoogleCloudStorageStripExtensionText.Text" xml:space="preserve">
     <value>Văn bản (Text)</value>
   </data>
@@ -1220,24 +926,6 @@ Sử dụng thư viện được mã hóa sẽ vô hiệu hóa chia sẻ.</value
   </data>
   <data name="lblGoogleCloudStorageStripExtension.Text" xml:space="preserve">
     <value>Xóa phần mở rộng của tệp trên:</value>
-  </data>
-  <data name="lblTeknikUploadAPIUrl.Text" xml:space="preserve">
-    <value>URL tải lên:</value>
-  </data>
-  <data name="cbTeknikEncrypt.Text" xml:space="preserve">
-    <value>Mã hóa phía thiết bị (client side encryption)</value>
-  </data>
-  <data name="cbTeknikGenDeleteKey.Text" xml:space="preserve">
-    <value>Tạo key cho phép xóa</value>
-  </data>
-  <data name="lblTeknikAuthUrl.Text" xml:space="preserve">
-    <value>URL xác thực:</value>
-  </data>
-  <data name="lblTeknikUrlShortenerAPIUrl.Text" xml:space="preserve">
-    <value>API rút gọn URL:</value>
-  </data>
-  <data name="lblTeknikPasteAPIUrl.Text" xml:space="preserve">
-    <value>Dán API URL:</value>
   </data>
   <data name="cbAmazonS3SignedPayload.Text" xml:space="preserve">
     <value>Signed payload - Kèm chữ kí khi gửi lên</value>
@@ -1286,5 +974,35 @@ Sử dụng thư viện được mã hóa sẽ vô hiệu hóa chia sẻ.</value
   </data>
   <data name="cbOneDriveUseDirectLink.Text" xml:space="preserve">
     <value>Dùng liên kết trực tiếp</value>
+  </data>
+  <data name="lblPrivateBinPassword.Text" xml:space="preserve">
+    <value>Mật khẩu:</value>
+  </data>
+  <data name="lblPrivateBinUsername.Text" xml:space="preserve">
+    <value>Tên người dùng:</value>
+  </data>
+  <data name="gbPrivateBinCredentials.Text" xml:space="preserve">
+    <value>Thông tin đăng nhập</value>
+  </data>
+  <data name="gbPrivateBinCredentials.ToolTip" xml:space="preserve">
+    <value>Một số máy chủ có thể yêu cầu ủy quyền bổ sung</value>
+  </data>
+  <data name="lblAzureStorageCacheControl.Text" xml:space="preserve">
+    <value>Tiêu đề Cache-Control:</value>
+  </data>
+  <data name="lblPrivateBinCustomUrl.Text" xml:space="preserve">
+    <value>URL tùy chỉnh:</value>
+  </data>
+  <data name="lblPrivateBinExpiration.Text" xml:space="preserve">
+    <value>Hết hạn:</value>
+  </data>
+  <data name="lblPrivateBinFormat.Text" xml:space="preserve">
+    <value>Định dạng:</value>
+  </data>
+  <data name="lblPrivateBinPastePassword.Text" xml:space="preserve">
+    <value>Mật khẩu dán:</value>
+  </data>
+  <data name="cbPrivateBinBurnAfterReading.Text" xml:space="preserve">
+    <value>Hủy sau khi đọc</value>
   </data>
 </root>

@@ -70,7 +70,7 @@ namespace ShareX.ImageEditor.Presentation.Views
             int canvasWidth = Math.Max(1, (int)Math.Ceiling(_editorCore.CanvasSize.Width));
             int canvasHeight = Math.Max(1, (int)Math.Ceiling(_editorCore.CanvasSize.Height));
 
-            spotlightOverlay.UpdateSpotlights(spotlights, canvasWidth, canvasHeight);
+            spotlightOverlay.UpdateSpotlights(spotlights, _editorCore.SourceImage, canvasWidth, canvasHeight);
         }
 
         private void RenderCore()
@@ -109,27 +109,46 @@ namespace ShareX.ImageEditor.Presentation.Views
             {
                 snapshotTarget.Measure(Size.Infinity);
 
-                double width = snapshotTarget.DesiredSize.Width;
-                double height = snapshotTarget.DesiredSize.Height;
+                int pixelWidth = 0;
+                int pixelHeight = 0;
 
-                if (width <= 0 || height <= 0)
+                if (DataContext is MainViewModel vm)
                 {
-                    width = snapshotTarget.Bounds.Width;
-                    height = snapshotTarget.Bounds.Height;
+                    double width = vm.SmartPaddingViewportWidth + vm.SmartPaddingThickness.Left + vm.SmartPaddingThickness.Right + vm.CanvasPadding.Left + vm.CanvasPadding.Right;
+                    double height = vm.SmartPaddingViewportHeight + vm.SmartPaddingThickness.Top + vm.SmartPaddingThickness.Bottom + vm.CanvasPadding.Top + vm.CanvasPadding.Bottom;
+
+                    pixelWidth = Math.Max(1, (int)Math.Round(width, MidpointRounding.AwayFromZero));
+                    pixelHeight = Math.Max(1, (int)Math.Round(height, MidpointRounding.AwayFromZero));
                 }
 
-                if (width <= 0 || height <= 0)
+                if (pixelWidth <= 0 || pixelHeight <= 0)
                 {
-                    width = _editorCore.SourceImage.Width;
-                    height = _editorCore.SourceImage.Height;
+                    double width = snapshotTarget.Bounds.Width;
+                    double height = snapshotTarget.Bounds.Height;
+
+                    if (width <= 0 || height <= 0)
+                    {
+                        width = snapshotTarget.DesiredSize.Width;
+                        height = snapshotTarget.DesiredSize.Height;
+                    }
+
+                    if (width <= 0 || height <= 0)
+                    {
+                        width = _editorCore.SourceImage.Width;
+                        height = _editorCore.SourceImage.Height;
+                    }
+
+                    // Fallback to live bounds only when the view-model export size is unavailable.
+                    pixelWidth = Math.Max(1, (int)Math.Round(width, MidpointRounding.AwayFromZero));
+                    pixelHeight = Math.Max(1, (int)Math.Round(height, MidpointRounding.AwayFromZero));
                 }
 
                 // Force layout at native resolution (un-zoomed)
-                snapshotTarget.Arrange(new Rect(0, 0, width, height));
+                snapshotTarget.Arrange(new Rect(0, 0, pixelWidth, pixelHeight));
 
                 // Render Avalonia visual tree to bitmap
                 using var rtb = new RenderTargetBitmap(
-                    new PixelSize(Math.Max(1, (int)Math.Ceiling(width)), Math.Max(1, (int)Math.Ceiling(height))),
+                        new PixelSize(pixelWidth, pixelHeight),
                     new Vector(96, 96));
                 rtb.Render(snapshotTarget);
 
@@ -158,6 +177,8 @@ namespace ShareX.ImageEditor.Presentation.Views
 
         private bool TryUpdateCachedEffectVisual(Control shape, BaseEffectAnnotation annotation, SkiaSharp.SKBitmap sourceBitmap, Rect? overrideBounds = null)
         {
+            Rect? effectBounds = null;
+
             if (overrideBounds.HasValue)
             {
                 var bounds = overrideBounds.Value;
@@ -168,6 +189,7 @@ namespace ShareX.ImageEditor.Presentation.Views
 
                 annotation.StartPoint = new SkiaSharp.SKPoint((float)bounds.X, (float)bounds.Y);
                 annotation.EndPoint = new SkiaSharp.SKPoint((float)(bounds.X + bounds.Width), (float)(bounds.Y + bounds.Height));
+                effectBounds = bounds;
             }
 
             if (!EnsureEffectPreviewCache(annotation, sourceBitmap) || _cachedEffectPreviewBitmap == null)
@@ -176,8 +198,38 @@ namespace ShareX.ImageEditor.Presentation.Views
             }
 
             annotation.UpdateEffectFromInteractionCache(sourceBitmap, _cachedEffectPreviewBitmap);
+            AnnotationEffectVisualUpdater.ApplyEffectClip(shape, annotation, effectBounds ?? GetEffectVisualBounds(shape, annotation));
             AnnotationEffectVisualUpdater.ApplyEffectBrush(shape, annotation);
             return true;
+        }
+
+        private static Rect GetEffectVisualBounds(Control shape, BaseEffectAnnotation annotation)
+        {
+            double left = Canvas.GetLeft(shape);
+            double top = Canvas.GetTop(shape);
+            double width = shape.Width;
+            double height = shape.Height;
+
+            if (double.IsNaN(width) || width <= 0)
+            {
+                width = shape.Bounds.Width;
+            }
+
+            if (double.IsNaN(height) || height <= 0)
+            {
+                height = shape.Bounds.Height;
+            }
+
+            if (double.IsNaN(left) || double.IsNaN(top) || width <= 0 || height <= 0)
+            {
+                var annotationBounds = annotation.GetBounds();
+                left = annotationBounds.Left;
+                top = annotationBounds.Top;
+                width = annotationBounds.Width;
+                height = annotationBounds.Height;
+            }
+
+            return new Rect(left, top, width, height);
         }
 
         private bool EnsureEffectPreviewCache(BaseEffectAnnotation annotation, SkiaSharp.SKBitmap sourceBitmap)

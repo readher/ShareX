@@ -22,10 +22,4 @@
   <ItemGroup>
     <ProjectReference Include="..\ShareX.ImageEditor\ShareX.ImageEditor.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Assets\Sample.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 </Project>

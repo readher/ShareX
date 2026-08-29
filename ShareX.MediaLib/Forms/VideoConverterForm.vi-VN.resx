@@ -138,10 +138,13 @@
   <data name="lblOutputFolder.Text" xml:space="preserve">
     <value>Thư mục đầu ra:</value>
   </data>
-  <data name="lblVideoCodec.Text" xml:space="preserve">
-    <value>Bộ giải mã video:</value>
-  </data>
   <data name="lblVideoQuality.Text" xml:space="preserve">
     <value>Chất lượng video:</value>
+  </data>
+  <data name="lblVideoEncoder.Text" xml:space="preserve">
+    <value>Bộ mã hóa video:</value>
+  </data>
+  <data name="cbVideoQualityUseBitrate.Text" xml:space="preserve">
+    <value>Dùng tốc độ bit</value>
   </data>
 </root>

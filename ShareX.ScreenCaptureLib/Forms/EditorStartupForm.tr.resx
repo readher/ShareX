@@ -133,6 +133,6 @@
     <value>İptal</value>
   </data>
   <data name="btnLoadImageFromURL.Text" xml:space="preserve">
-    <value>URL’den resim yükle</value>
+    <value>URL’den resim yükle...</value>
   </data>
 </root>

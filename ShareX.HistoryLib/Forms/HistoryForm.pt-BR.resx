@@ -162,9 +162,6 @@
   <data name="tsbSearch.Text" xml:space="preserve">
     <value>Procurar</value>
   </data>
-  <data name="tsbToggleMoreInfo.Text" xml:space="preserve">
-    <value>Alternar mais informações</value>
-  </data>
   <data name="tsbShowStats.Text" xml:space="preserve">
     <value>Mostrar estatísticas...</value>
   </data>
@@ -176,5 +173,11 @@
   </data>
   <data name="tsbSettings.Text" xml:space="preserve">
     <value>Configurações...</value>
+  </data>
+  <data name="tsbFavorites.Text" xml:space="preserve">
+    <value>Favoritos</value>
+  </data>
+  <data name="tsbImportFolder.Text" xml:space="preserve">
+    <value>Importar pasta...</value>
   </data>
 </root>
