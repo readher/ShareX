@@ -2,28 +2,39 @@
 <h3 align="center">Screen capture, file sharing and productivity tool</h3>
 <br>
 <div align="center">
-  <a href="https://github.com/ShareX/ShareX/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ShareX/ShareX/build.yml?branch=develop&label=Build&cacheSeconds=3600" alt="GitHub Workflow Status"/></a>
   <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/ShareX/ShareX?label=License&color=brightgreen&cacheSeconds=3600" alt="License"/></a>
-  <a href="https://github.com/ShareX/ShareX/releases/latest"><img src="https://img.shields.io/github/v/release/ShareX/ShareX?label=Release&color=brightgreen&cacheSeconds=3600" alt="Release"/></a>
-  <a href="https://getsharex.com/downloads"><img src="https://img.shields.io/github/downloads/ShareX/ShareX/total?label=Downloads&cacheSeconds=3600" alt="Downloads"/></a>
-  <a href="https://discord.gg/ShareX"><img src="https://img.shields.io/discord/194170124859736065?label=Discord&cacheSeconds=3600" alt="Discord"/></a>
-  <a href="https://twitter.com/intent/follow?screen_name=ShareX"><img src="https://img.shields.io/twitter/follow/ShareX?cacheSeconds=3600" alt="Twitter"/></a>
 </div>
 <br>
 <p align="center"><a href="https://getsharex.com"><img src="https://getsharex.com/img/ShareX_Screenshot.png" alt="ShareX Screenshot"/></a></p>
-<p align="center">For further information please check our <a href="https://getsharex.com">website</a></p>
+<p align="center">For further information please check the official <a href="https://getsharex.com">website</a></p>
+
+## About this fork
+
+This is a fork of [Delphox/ShareX](https://github.com/Delphox/ShareX), which itself forks upstream [ShareX/ShareX](https://github.com/ShareX/ShareX) to add **WEBP, AVIF and AV1 support**. All credit for the WEBP/AVIF/AV1 work goes to [Delphox](https://github.com/Delphox) — thank you!
+
+On top of that fork, this repository contains the following changes:
+
+### Fixed
+* **AVIF thumbnails failing after a while** — `NativeMethods.CopyMemory` P/Invoke bound to a non-existent `kernel32` export; it is actually `RtlMoveMemory` (`CopyMemory` is a C macro). AVIF files now decode again after the error had permanently poisoned earlier sessions.
+* **App crash while loading AVIF images** — `avifDecoderSetIOMemory` was given a pointer to a managed `byte[]` that the GC could move or collect while `libavif` still referenced it. The buffer is now copied to unmanaged memory (`Marshal.AllocHGlobal`) for the decoder's lifetime and freed afterwards.
+
+### Changed
+* **Auto-updater now checks this repository** (`readher/ShareX`) instead of Delphox's, so updates come from this fork's releases.
+* **Installer build pipeline fixes** — Inno Setup 7 is detected, a locally provided ExifTool zip is used when present, and the extracted ExifTool folder layout is flattened to what the Inno Setup script expects.
+
+### Performance
+* **Thumbnail cache** (`ThumbnailCache`) — resized thumbnails are cached in memory (LRU, bounded size) and reused across thumbnail-view refreshes, so screenshots are not re-decoded from disk (AVIF/WebP/JPEG decode is the expensive part) on every refresh or size change.
+* **Background cache warm-up** — at startup all recent screenshot files are pre-decoded on a worker thread, so even the *first* scroll through the screenshots grid is smooth instead of stuttering while tiles decode on demand.
+* **Smoother scrolling** — removed transparent-background emulation in the thumbnail panels (opaque themed colors instead), enabled double buffering on the scroll containers, fixed mouse wheel scrolling the content twice per notch, removed a redundant full layout pass on every wheel tick, and raised the wheel scroll distance from 48 px to ~144 px per notch to better suit a thumbnail grid.
+* **Batched panel layout** — panel additions during startup are batched (`BeginBulkUpdate`/`EndBulkUpdate`) to avoid O(n²) relayouts.
 
 ## Links
 * Official website: https://getsharex.com
-* GitHub: https://github.com/ShareX/ShareX
+* Upstream ShareX: https://github.com/ShareX/ShareX
+* WEBP/AVIF/AV1 fork by Delphox: https://github.com/Delphox/ShareX
 * Changelog: https://getsharex.com/changelog
 * Privacy policy: https://getsharex.com/privacy-policy
 * Donate: https://getsharex.com/donate
-* Twitter: https://twitter.com/ShareX
-* Discord: https://discord.gg/ShareX
-* Reddit: https://www.reddit.com/r/sharex
-* Steam page: https://store.steampowered.com/app/400040/ShareX/
-* Microsoft Store page: https://apps.microsoft.com/detail/9nblggh4z1sp
 
 ## Documents
 * Image effects: https://getsharex.com/image-effects
@@ -39,12 +50,3 @@
 * Google Cloud Storage guide: https://getsharex.com/docs/google-cloud-storage
 * Cloudflare R2 guide: https://getsharex.com/docs/cloudflare-r2
 * Brand assets: https://getsharex.com/brand-assets
-
-## Star History
-<a href="https://www.star-history.com/?repos=ShareX%2FShareX&type=date&legend=bottom-right">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=ShareX/ShareX&type=date&theme=dark&legend=bottom-right" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=ShareX/ShareX&type=date&legend=bottom-right" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=ShareX/ShareX&type=date&legend=bottom-right" />
- </picture>
-</a>

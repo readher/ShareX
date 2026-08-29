@@ -541,10 +541,38 @@ namespace ShareX
         {
             if (TaskListView.ListViewControl.Items.Count == 0)
             {
-                foreach (RecentTask recentTask in RecentManager.Tasks)
+                TaskThumbnailView thumbnailView = TaskThumbnailView;
+
+                if (thumbnailView != null)
                 {
-                    WorkerTask task = WorkerTask.CreateHistoryTask(recentTask);
-                    Start(task);
+                    thumbnailView.BeginBulkUpdate();
+                }
+
+                try
+                {
+                    List<string> thumbnailFiles = new List<string>();
+
+                    foreach (RecentTask recentTask in RecentManager.Tasks)
+                    {
+                        WorkerTask task = WorkerTask.CreateHistoryTask(recentTask);
+                        Start(task);
+
+                        string filePath = recentTask.FilePath;
+
+                        if (!string.IsNullOrEmpty(filePath) && FileHelpers.IsImageFile(filePath))
+                        {
+                            thumbnailFiles.Add(filePath);
+                        }
+                    }
+
+                    if (thumbnailFiles.Count > 0)
+                    {
+                        Size warmUpSize = thumbnailView.ThumbnailSize;
+                        Task.Run(() => ThumbnailCache.WarmUp(thumbnailFiles, warmUpSize));
+                    }                }
+                finally
+                {
+                    thumbnailView?.EndBulkUpdate();
                 }
             }
         }

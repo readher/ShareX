@@ -250,9 +250,15 @@ namespace ShareX
 
         public void UpdateTheme()
         {
+            BackColor = ShareXResources.Theme.BackgroundColor;
             lblTitle.ForeColor = ShareXResources.Theme.TextColor;
+            lblTitle.BackColor = ShareXResources.Theme.BackgroundColor;
             lblTitle.TextShadowColor = ShareXResources.Theme.DarkBackgroundColor;
             pThumbnail.PanelColor = ShareXResources.Theme.DarkBackgroundColor;
+            // Opaque backgrounds matching the surrounding colors; Transparent would force
+            // WinForms to replay the parent's paint for every control on every repaint.
+            pThumbnail.BackColor = ShareXResources.Theme.BackgroundColor;
+            pbThumbnail.BackColor = pThumbnail.PanelColor;
             ttMain.BackColor = ShareXResources.Theme.BackgroundColor;
             ttMain.ForeColor = ShareXResources.Theme.TextColor;
             lblCombineHorizontal.BorderColor = ShareXResources.Theme.BorderColor;
@@ -359,12 +365,22 @@ namespace ShareX
                 }
                 else if (File.Exists(filePath))
                 {
-                    using (Bitmap bmpResult = ImageHelpers.LoadImage(filePath))
+                    Bitmap bmpResult = ThumbnailCache.GetOrLoad(filePath, ThumbnailSize, () =>
                     {
-                        if (bmpResult != null)
+                        using (Bitmap loaded = ImageHelpers.LoadImage(filePath))
                         {
-                            return ImageHelpers.ResizeImage(bmpResult, ThumbnailSize, false);
+                            if (loaded != null)
+                            {
+                                return ImageHelpers.ResizeImage(loaded, ThumbnailSize, false);
+                            }
                         }
+
+                        return null;
+                    });
+
+                    if (bmpResult != null)
+                    {
+                        return bmpResult;
                     }
                 }
 

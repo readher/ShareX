@@ -2811,9 +2811,15 @@ namespace ShareX.HelpersLib
             IntPtr avifImageHandle = IntPtr.Zero; // Store the native avifImage pointer
             AvifRGBImage rgb = default; // Keep the managed struct
             Bitmap bitmap = null;
-
+            // libavif retains the data pointer passed to avifDecoderSetIOMemory for the decoder's
+            // lifetime ("Data passed into avifDecoderParse() is NOT copied..." - avif.h), so the
+            // bytes must live in unmanaged memory; a managed array would only be pinned for the
+            // duration of the P/Invoke call and the GC is free to collect or relocate it.
+            IntPtr dataPtr = Marshal.AllocHGlobal(data.Length);
             try
             {
+                Marshal.Copy(data, 0, dataPtr, data.Length);
+
                 decoder = NativeMethods.avifDecoderCreate();
                 if (decoder == IntPtr.Zero)
                 {
@@ -2822,7 +2828,7 @@ namespace ShareX.HelpersLib
                 }
 
                 // Set memory IO
-                int result = NativeMethods.avifDecoderSetIOMemory(decoder, data, (IntPtr)data.Length);
+                int result = NativeMethods.avifDecoderSetIOMemory(decoder, dataPtr, (IntPtr)data.Length);
                 if (result != (int)AvifResult.AVIF_RESULT_OK)
                 {
                     DebugHelper.WriteLine($"avifDecoderSetIOMemory failed: {Marshal.PtrToStringAnsi(NativeMethods.avifResultToString(result))}");
@@ -2947,6 +2953,10 @@ namespace ShareX.HelpersLib
                 if (decoder != IntPtr.Zero)
                 {
                     NativeMethods.avifDecoderDestroy(decoder);
+                }
+                if (dataPtr != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(dataPtr);
                 }
             }
         }

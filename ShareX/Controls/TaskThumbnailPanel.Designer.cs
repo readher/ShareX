@@ -56,7 +56,7 @@
             // lblTitle
             // 
             this.lblTitle.AutoEllipsis = true;
-            this.lblTitle.BackColor = System.Drawing.Color.Transparent;
+            this.lblTitle.BackColor = System.Drawing.SystemColors.Control;
             resources.ApplyResources(this.lblTitle, "lblTitle");
             this.lblTitle.ForeColor = System.Drawing.Color.White;
             this.lblTitle.Name = "lblTitle";
@@ -66,7 +66,7 @@
             // pThumbnail
             // 
             this.pThumbnail.AllowDrop = true;
-            this.pThumbnail.BackColor = System.Drawing.Color.Transparent;
+            this.pThumbnail.BackColor = System.Drawing.SystemColors.Control;
             this.pThumbnail.Controls.Add(this.lblCombineVertical);
             this.pThumbnail.Controls.Add(this.lblError);
             this.pThumbnail.Controls.Add(this.lblCombineHorizontal);
@@ -121,7 +121,7 @@
             // 
             // pbThumbnail
             // 
-            this.pbThumbnail.BackColor = System.Drawing.Color.Transparent;
+            this.pbThumbnail.BackColor = System.Drawing.SystemColors.Control;
             resources.ApplyResources(this.pbThumbnail, "pbThumbnail");
             this.pbThumbnail.Name = "pbThumbnail";
             this.pbThumbnail.TabStop = false;
@@ -135,7 +135,7 @@
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.Transparent;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.pThumbnail);
             this.Controls.Add(this.lblTitle);
             this.Name = "TaskThumbnailPanel";

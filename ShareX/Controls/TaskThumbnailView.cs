@@ -42,6 +42,9 @@ namespace ShareX
         public List<TaskThumbnailPanel> Panels { get; private set; }
         public List<TaskThumbnailPanel> SelectedPanels { get; private set; }
 
+        private bool bulkUpdate;
+        private bool layoutQueued;
+
         public TaskThumbnailPanel SelectedPanel
         {
             get
@@ -112,6 +115,7 @@ namespace ShareX
                 if (thumbnailSize != value)
                 {
                     thumbnailSize = value;
+                    ThumbnailCache.Clear();
 
                     foreach (TaskThumbnailPanel panel in Panels)
                     {
@@ -162,6 +166,17 @@ namespace ShareX
 
             InitializeComponent();
             UpdateTheme();
+
+            EnableDoubleBuffer(flpMain);
+            EnableDoubleBuffer(pMain);
+        }
+
+        // Control.DoubleBuffered is protected; this is the standard way to enable it
+        // for controls not owned by this class.
+        private static void EnableDoubleBuffer(Control control)
+        {
+            typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?.SetValue(control, true, null);
         }
 
         protected override Point ScrollToControl(Control activeControl)
@@ -198,8 +213,19 @@ namespace ShareX
             TaskThumbnailPanel panel = CreatePanel(task);
             Panels.Add(panel);
             flpMain.Controls.Add(panel);
-            flpMain.Controls.SetChildIndex(panel, 0);
-            UpdateScrollBar();
+
+            if (bulkUpdate)
+            {
+                // Keep new panels at the top without triggering a layout per panel;
+                // QueueLayout performs the single SetChildIndex + scrollbar update.
+                flpMain.Controls.SetChildIndex(panel, 0);
+            }
+            else
+            {
+                flpMain.Controls.SetChildIndex(panel, 0);
+                UpdateScrollBar();
+            }
+
             return panel;
         }
 
@@ -213,7 +239,42 @@ namespace ShareX
                 SelectedPanels.Remove(panel);
                 flpMain.Controls.Remove(panel);
                 panel.Dispose();
-                UpdateScrollBar();
+
+                if (!bulkUpdate)
+                {
+                    UpdateScrollBar();
+                }
+            }
+        }
+
+        public void BeginBulkUpdate()
+        {
+            bulkUpdate = true;
+
+            flpMain.SuspendLayout();
+            pMain.SuspendLayout();
+        }
+
+        public void EndBulkUpdate()
+        {
+            pMain.ResumeLayout();
+            flpMain.ResumeLayout();
+
+            bulkUpdate = false;
+
+            QueueLayout();
+        }
+
+        private void QueueLayout()
+        {
+            if (!layoutQueued)
+            {
+                layoutQueued = true;
+                BeginInvoke(new Action(() =>
+                {
+                    layoutQueued = false;
+                    UpdateScrollBar();
+                }));
             }
         }
 
@@ -357,22 +418,24 @@ namespace ShareX
             {
                 int systemLines = SystemInformation.MouseWheelScrollLines;
                 if (systemLines <= 0) systemLines = 3;
-                int scrollAmount = systemLines * 16;
+                // A "line" of ~48px suits thumbnail grids; the OS default of ~16px per line
+                // (tuned for text) makes the grid crawl at 3-4 notches per thumbnail row.
+                int scrollAmount = systemLines * 48;
                 int delta = Math.Sign(-e.Delta) * scrollAmount;
                 int newValue = Math.Max(0, Math.Min(sbMain.Maximum, sbMain.Value + delta));
                 sbMain.Value = newValue;
-
-                ScrollContent();
             }
         }
 
         private void ScrollContent()
         {
+            // Only the Y offset changes; ResumeLayout() (without argument) would run a
+            // full layout pass on every scroll tick for no benefit.
             pMain.SuspendLayout();
 
             flpMain.Location = new Point(0, -sbMain.Value);
 
-            pMain.ResumeLayout();
+            pMain.ResumeLayout(false);
         }
 
         private void UpdateScrollBar()

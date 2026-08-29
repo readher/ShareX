@@ -309,8 +309,8 @@ namespace ShareX.HelpersLib
         public static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes,
             bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
-        // Memory copy (optional, can use Marshal.Copy)
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
+        // CopyMemory is a C macro in the Windows headers, not an actual kernel32 export, so binding to it throws EntryPointNotFoundException. RtlMoveMemory is the real exported function behind it.
+        [DllImport("kernel32.dll", EntryPoint = "RtlMoveMemory", SetLastError = false)]
         public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
 
         [DllImport("kernel32.dll")]
@@ -515,7 +515,7 @@ namespace ShareX.HelpersLib
         public static extern IntPtr avifDecoderCreate();
 
         [DllImport(AvifDll, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int avifDecoderSetIOMemory(IntPtr decoder, byte[] data, IntPtr size); // size_t -> IntPtr
+        public static extern int avifDecoderSetIOMemory(IntPtr decoder, IntPtr data, IntPtr size); // size_t -> IntPtr
 
         [DllImport(AvifDll, CallingConvention = CallingConvention.Cdecl)]
         public static extern int avifDecoderParse(IntPtr decoder);
