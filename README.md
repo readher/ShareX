@@ -14,6 +14,8 @@ This is a fork of [Delphox/ShareX](https://github.com/Delphox/ShareX), which its
 
 The **JPEG XL (.jxl) support** (encode/decode via libjxl) and the lower minimum video bitrate option are incorporated from [koloved/ShareX](https://github.com/koloved/ShareX/tree/jpegXL) by [koloved](https://github.com/koloved) — with a fix for its JXL decoder event enums, which did not match the libjxl API values and made JXL files fail to decode (only encoding worked).
 
+**Based on upstream ShareX 21.0.0** — all improvements from the official [ShareX 20.2.0 and 21.0.0 releases](https://github.com/ShareX/ShareX/releases) are merged in (new Avalonia-based image editor, OCR and other upstream enhancements), while keeping every fix and addition listed below.
+
 On top of that fork, this repository contains the following changes:
 
 ### Fixed
