@@ -420,7 +420,8 @@ namespace ShareX
             imageData.ImageStream = SaveImageAsStream(img, imageFormat, taskSettings.ImageSettings.ImagePNGBitDepth,
                 taskSettings.ImageSettings.ImageJPEGQuality, taskSettings.ImageSettings.ImageGIFQuality,
                 GetPNGEncoderOptions(taskSettings.ImageSettings), taskSettings.ImageSettings.ImageJPEGSubsampling,
-                taskSettings.ImageSettings.ImageBMPBitDepth, autoUseJPEG ? jpegSizeLimit : long.MaxValue, out bool pngSizeLimitExceeded);
+                taskSettings.ImageSettings.ImageBMPBitDepth, autoUseJPEG ? jpegSizeLimit : long.MaxValue, out bool pngSizeLimitExceeded,
+                taskSettings.ImageSettings.ImageAvifTune, taskSettings.ImageSettings.ImageJXLEffort);
             imageData.ImageFormat = imageFormat;
 
             if (autoUseJPEG && (pngSizeLimitExceeded || imageData.ImageStream.Length > jpegSizeLimit))
@@ -475,7 +476,8 @@ namespace ShareX
             return SaveImageAsStream(img, imageFormat, taskSettings.ImageSettings.ImagePNGBitDepth,
                 taskSettings.ImageSettings.ImageJPEGQuality, taskSettings.ImageSettings.ImageGIFQuality,
                 GetPNGEncoderOptions(taskSettings.ImageSettings), taskSettings.ImageSettings.ImageJPEGSubsampling,
-                taskSettings.ImageSettings.ImageBMPBitDepth, long.MaxValue, out _);
+                taskSettings.ImageSettings.ImageBMPBitDepth, long.MaxValue, out _,
+                taskSettings.ImageSettings.ImageAvifTune, taskSettings.ImageSettings.ImageJXLEffort);
         }
 
         private static SKPngEncoderOptions GetPNGEncoderOptions(TaskSettingsImage settings)
@@ -500,7 +502,8 @@ namespace ShareX
 
         private static MemoryStream SaveImageAsStream(Image img, EImageFormat imageFormat, PNGBitDepth pngBitDepth,
             int jpegQuality, GIFQuality gifQuality, SKPngEncoderOptions pngOptions, SKJpegEncoderDownsample jpegSubsampling,
-            BMPBitDepth bmpBitDepth, long pngSizeLimit, out bool pngSizeLimitExceeded)
+            BMPBitDepth bmpBitDepth, long pngSizeLimit, out bool pngSizeLimitExceeded,
+            AvifTuneIQ avifTune = AvifTuneIQ.Default, int jxlEffort = 7)
         {
             MemoryStream ms = new MemoryStream();
             pngSizeLimitExceeded = false;
@@ -536,6 +539,21 @@ namespace ShareX
                         break;
                     case EImageFormat.BMP:
                         SkiaImageHelpers.SaveBMP(img, ms, bmpBitDepth);
+                        break;
+                    case EImageFormat.WEBP:
+                        img.Save(ms, SKEncodedImageFormat.Webp, jpegQuality);
+                        break;
+                    case EImageFormat.AVIF:
+                        if (!AvifJxlCodec.SaveAvif(img, ms, jpegQuality, tune: avifTune))
+                        {
+                            throw new InvalidDataException("AVIF encoding failed.");
+                        }
+                        break;
+                    case EImageFormat.JXL:
+                        if (!AvifJxlCodec.SaveJxl(img, ms, jpegQuality, jxlEffort))
+                        {
+                            throw new InvalidDataException("JPEG XL encoding failed.");
+                        }
                         break;
                 }
             }

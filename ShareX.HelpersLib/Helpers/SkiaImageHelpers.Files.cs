@@ -49,8 +49,8 @@ public static partial class SkiaImageHelpers
     public static string[] OpenImageFileDialog(bool multiselect, Window form = null, string initialDirectory = null)
     {
         return FileDialogHelpers.OpenFiles(filter:
-            $"{Localization.Strings.ImageHelpers_Image_files} (*.png, *.jpg, *.jpeg, *.jpe, *.jfif, *.gif, *.bmp)|*.png;*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.bmp|" +
-            "PNG (*.png)|*.png|JPEG (*.jpg, *.jpeg, *.jpe, *.jfif)|*.jpg;*.jpeg;*.jpe;*.jfif|GIF (*.gif)|*.gif|BMP (*.bmp)|*.bmp",
+            $"{Localization.Strings.ImageHelpers_Image_files} (*.png, *.jpg, *.jpeg, *.jpe, *.jfif, *.gif, *.bmp, *.webp, *.avif, *.jxl)|*.png;*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.bmp;*.webp;*.avif;*.jxl|" +
+            "PNG (*.png)|*.png|JPEG (*.jpg, *.jpeg, *.jpe, *.jfif)|*.jpg;*.jpeg;*.jpe;*.jfif|GIF (*.gif)|*.gif|BMP (*.bmp)|*.bmp|WEBP (*.webp)|*.webp|AVIF (*.avif)|*.avif|JPEG XL (*.jxl)|*.jxl",
             multiselect: multiselect, initialDirectory: initialDirectory, owner: form);
     }
 
@@ -78,9 +78,18 @@ public static partial class SkiaImageHelpers
         string initialDirectory = useLastDirectory && Directory.Exists(HelpersOptions.LastSaveDirectory)
             ? HelpersOptions.LastSaveDirectory : Path.GetDirectoryName(filePath);
         string extension = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
-        int filterIndex = extension switch { "jpg" or "jpeg" or "jpe" or "jfif" => 2, "gif" => 3, "bmp" => 4, _ => 1 };
+        int filterIndex = extension switch
+        {
+            "jpg" or "jpeg" or "jpe" or "jfif" => 2,
+            "gif" => 3,
+            "bmp" => 4,
+            "webp" => 5,
+            "avif" => 6,
+            "jxl" => 7,
+            _ => 1
+        };
         string selectedPath = FileDialogHelpers.SaveFile(filter:
-            "PNG (*.png)|*.png|JPEG (*.jpg, *.jpeg, *.jpe, *.jfif)|*.jpg;*.jpeg;*.jpe;*.jfif|GIF (*.gif)|*.gif|BMP (*.bmp)|*.bmp",
+            "PNG (*.png)|*.png|JPEG (*.jpg, *.jpeg, *.jpe, *.jfif)|*.jpg;*.jpeg;*.jpe;*.jfif|GIF (*.gif)|*.gif|BMP (*.bmp)|*.bmp|WEBP (*.webp)|*.webp|AVIF (*.avif)|*.avif|JPEG XL (*.jxl)|*.jxl",
             fileName: Path.GetFileName(filePath), initialDirectory: initialDirectory, defaultExtension: "png", filterIndex: filterIndex);
         if (!string.IsNullOrEmpty(selectedPath) && SaveImage(img, selectedPath))
         {
@@ -170,6 +179,12 @@ public static partial class SkiaImageHelpers
     {
         try
         {
+            if (AvifJxlCodec.IsAvifOrJxl(path))
+            {
+                using SKBitmap bitmap = LoadImage(path);
+                return bitmap == null ? Size.Empty : new Size(bitmap.Width, bitmap.Height);
+            }
+
             using FileStream stream = File.OpenRead(path);
             using SKManagedStream managed = new(stream, false);
             using SKCodec codec = SKCodec.Create(managed);

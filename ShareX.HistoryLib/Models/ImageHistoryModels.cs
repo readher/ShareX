@@ -239,40 +239,59 @@ public sealed class ImageHistoryThumbnailLoader : IDisposable
     {
         if (token.IsCancellationRequested) return null;
 
-        try
+        if (!AvifJxlCodec.IsAvifOrJxl(filePath))
         {
-            using DrawingBitmap? shellThumbnail = NativeMethods.GetFileThumbnail(filePath, new DrawingSize(width, height));
-            if (shellThumbnail != null)
+            try
             {
-                if (token.IsCancellationRequested) return null;
-                return BitmapConversionHelpers.CreatePreview(shellThumbnail, new PixelSize(width, height));
+                using DrawingBitmap? shellThumbnail = NativeMethods.GetFileThumbnail(filePath, new DrawingSize(width, height));
+                if (shellThumbnail != null)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    return BitmapConversionHelpers.CreatePreview(shellThumbnail, new PixelSize(width, height));
+                }
             }
-        }
-        catch (OperationCanceledException)
-        {
-            return null;
-        }
-        catch (Exception ex)
-        {
-            DebugHelper.WriteException(ex);
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                DebugHelper.WriteException(ex);
+            }
         }
 
         if (token.IsCancellationRequested || FileHelpers.IsVideoFile(filePath)) return null;
-        using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        AvaloniaBitmap thumbnail = AvaloniaBitmap.DecodeToWidth(stream, width);
-        if (token.IsCancellationRequested)
+        Stream? stream = AvifJxlCodec.IsAvifOrJxl(filePath)
+            ? OpenNativePreview(filePath)
+            : File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        if (stream == null) return null;
+        using (stream)
         {
+            AvaloniaBitmap thumbnail = AvaloniaBitmap.DecodeToWidth(stream, width);
+            if (token.IsCancellationRequested)
+            {
+                thumbnail.Dispose();
+                return null;
+            }
+            if (thumbnail.PixelSize.Height <= height) return thumbnail;
+
             thumbnail.Dispose();
+            stream.Position = 0;
+            AvaloniaBitmap heightScaledThumbnail = AvaloniaBitmap.DecodeToHeight(stream, height);
+            if (!token.IsCancellationRequested) return heightScaledThumbnail;
+            heightScaledThumbnail.Dispose();
             return null;
         }
-        if (thumbnail.PixelSize.Height <= height) return thumbnail;
+    }
 
-        thumbnail.Dispose();
-        stream.Position = 0;
-        AvaloniaBitmap heightScaledThumbnail = AvaloniaBitmap.DecodeToHeight(stream, height);
-        if (!token.IsCancellationRequested) return heightScaledThumbnail;
-        heightScaledThumbnail.Dispose();
-        return null;
+    private static Stream? OpenNativePreview(string filePath)
+    {
+        using DrawingBitmap? image = SkiaImageHelpers.LoadImage(filePath);
+        if (image == null) return null;
+        MemoryStream png = new();
+        image.Save(png, SkiaSharp.SKEncodedImageFormat.Png);
+        png.Position = 0;
+        return png;
     }
 
     public void Dispose()

@@ -345,7 +345,7 @@
                                             <TextBlock Classes="field-label" Text="{x:Static localization:Strings.FFmpegOptionsWindow_Target_bitrate}"/>
                                             <NumericUpDown x:Name="X264BitrateNumericUpDown"
                                                            Classes="number"
-                                                           Minimum="100"
+                                                           Minimum="1"
                                                            Maximum="100000"
                                                            Increment="100"
                                                            FormatString="0"/>
@@ -356,7 +356,7 @@
                                         <TextBlock Classes="field-label" Text="{x:Static localization:Strings.FFmpegOptionsWindow_Target_bitrate}"/>
                                         <NumericUpDown x:Name="VpxBitrateNumericUpDown"
                                                        Classes="number"
-                                                       Minimum="100"
+                                                       Minimum="1"
                                                        Maximum="100000"
                                                        Increment="100"
                                                        FormatString="0"/>
@@ -387,7 +387,7 @@
                                             <TextBlock Classes="field-label" Text="{x:Static localization:Strings.FFmpegOptionsWindow_Target_bitrate}"/>
                                             <NumericUpDown x:Name="NvencBitrateNumericUpDown"
                                                            Classes="number"
-                                                           Minimum="100"
+                                                           Minimum="1"
                                                            Maximum="100000"
                                                            Increment="100"
                                                            FormatString="0"/>
@@ -430,7 +430,7 @@
                                             <TextBlock Classes="field-label" Text="{x:Static localization:Strings.FFmpegOptionsWindow_Target_bitrate}"/>
                                             <NumericUpDown x:Name="AmfBitrateNumericUpDown"
                                                            Classes="number"
-                                                           Minimum="100"
+                                                           Minimum="1"
                                                            Maximum="100000"
                                                            Increment="100"
                                                            FormatString="0"/>
@@ -446,7 +446,7 @@
                                             <TextBlock Classes="field-label" Text="{x:Static localization:Strings.FFmpegOptionsWindow_Target_bitrate}"/>
                                             <NumericUpDown x:Name="QsvBitrateNumericUpDown"
                                                            Classes="number"
-                                                           Minimum="100"
+                                                           Minimum="1"
                                                            Maximum="100000"
                                                            Increment="100"
                                                            FormatString="0"/>

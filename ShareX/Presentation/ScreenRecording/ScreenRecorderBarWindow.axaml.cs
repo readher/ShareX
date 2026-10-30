@@ -413,7 +413,7 @@ internal partial class ScreenRecorderBarWindow : Window
         recording.Children.Add(Row(Strings.TaskSettingsWindow_ScreenRecordingFPS,
             Number(Capture.ScreenRecordFPS, 1, 120, 1, value => Capture.ScreenRecordFPS = (int)value)));
         recording.Children.Add(Row(Strings.TaskSettingsWindow_NativeRecorderBitrate,
-            Number(Capture.ScreenRecordVideoBitrate, 100, 200000, 100, value => Capture.ScreenRecordVideoBitrate = (int)value)));
+            Number(Capture.ScreenRecordVideoBitrate, 1, 200000, 100, value => Capture.ScreenRecordVideoBitrate = (int)value)));
         NumericUpDown duration = Number((decimal)Capture.ScreenRecordDuration, 0.1m, 86400, 0.1m, value => Capture.ScreenRecordDuration = (float)value);
         duration.IsEnabled = Capture.ScreenRecordFixedDuration;
         recording.Children.Add(Check(Strings.TaskSettingsWindow_UseFixedDuration, Capture.ScreenRecordFixedDuration,

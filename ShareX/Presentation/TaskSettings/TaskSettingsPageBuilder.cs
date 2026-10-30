@@ -317,12 +317,12 @@ internal sealed class TaskSettingsPageBuilder
                     }))
             }
         };
+        Control lossyQuality = Row(Strings.TaskSettingsWindow_JPEGQuality, Number(() => image.ImageJPEGQuality, value => image.ImageJPEGQuality = (int)value, 0, 100));
         StackPanel jpegOptions = new()
         {
             Spacing = 4,
             Children =
             {
-                Row(Strings.TaskSettingsWindow_JPEGQuality, Number(() => image.ImageJPEGQuality, value => image.ImageJPEGQuality = (int)value, 0, 100)),
                 Row(Strings.TaskSettingsWindow_JPEGSubsampling, ObjectCombo(
                     new[] { SKJpegEncoderDownsample.Downsample420, SKJpegEncoderDownsample.Downsample422, SKJpegEncoderDownsample.Downsample444 },
                     () => image.ImageJPEGSubsampling, value => image.ImageJPEGSubsampling = value, value => value switch
@@ -335,6 +335,8 @@ internal sealed class TaskSettingsPageBuilder
         };
         Control gifOptions = Row(Strings.TaskSettingsWindow_GIFQuality, EnumCombo(() => image.ImageGIFQuality, value => image.ImageGIFQuality = value));
         Control bmpOptions = Row(Strings.TaskSettingsWindow_BMPBitDepth, EnumCombo(() => image.ImageBMPBitDepth, value => image.ImageBMPBitDepth = value));
+        Control avifOptions = Row("AVIF tune", EnumCombo(() => image.ImageAvifTune, value => image.ImageAvifTune = value));
+        Control jxlOptions = Row("JPEG XL effort", Number(() => image.ImageJXLEffort, value => image.ImageJXLEffort = (int)value, 1, 10));
         Border automaticJpeg = new()
         {
             Child = EnabledCard(_imageOverride, Strings.TaskSettingsWindow_AutomaticJPEG,
@@ -342,17 +344,23 @@ internal sealed class TaskSettingsPageBuilder
                 Row(Strings.TaskSettingsWindow_SizeLimitKB, autoJpegSize), autoQuality)
         };
         SettingsSearch.SetIsAvailabilityContainer(pngOptions, true);
+        SettingsSearch.SetIsAvailabilityContainer(lossyQuality, true);
         SettingsSearch.SetIsAvailabilityContainer(jpegOptions, true);
         SettingsSearch.SetIsAvailabilityContainer(gifOptions, true);
         SettingsSearch.SetIsAvailabilityContainer(bmpOptions, true);
+        SettingsSearch.SetIsAvailabilityContainer(avifOptions, true);
+        SettingsSearch.SetIsAvailabilityContainer(jxlOptions, true);
         SettingsSearch.SetIsAvailabilityContainer(automaticJpeg, true);
 
         void UpdateEncoderVisibility(EImageFormat format)
         {
             pngOptions.IsVisible = format == EImageFormat.PNG;
+            lossyQuality.IsVisible = format is EImageFormat.JPEG or EImageFormat.WEBP or EImageFormat.AVIF or EImageFormat.JXL;
             jpegOptions.IsVisible = format == EImageFormat.JPEG;
             gifOptions.IsVisible = format == EImageFormat.GIF;
             bmpOptions.IsVisible = format == EImageFormat.BMP;
+            avifOptions.IsVisible = format == EImageFormat.AVIF;
+            jxlOptions.IsVisible = format == EImageFormat.JXL;
             automaticJpeg.IsVisible = format != EImageFormat.JPEG;
         }
 
@@ -367,7 +375,7 @@ internal sealed class TaskSettingsPageBuilder
                     UpdateEncoderVisibility(value);
                     _window.RefreshSettingsSearch();
                 })),
-                pngOptions, jpegOptions, gifOptions, bmpOptions,
+                lossyQuality, pngOptions, jpegOptions, gifOptions, bmpOptions, avifOptions, jxlOptions,
                 Row(Strings.TaskSettingsWindow_IfFileExists, EnumCombo(() => image.FileExistAction, value => image.FileExistAction = value))),
             automaticJpeg);
     }
@@ -527,7 +535,7 @@ internal sealed class TaskSettingsPageBuilder
         Control showBar = Check(Strings.ScreenRecorderBar_ShowBeforeRecording, () => capture.ScreenRecordShowBar, value => capture.ScreenRecordShowBar = value);
         BindEnabled(showBar, native);
         Control hardware = Check(Strings.TaskSettingsWindow_NativeRecorderHardware, () => capture.ScreenRecordRequireHardwareEncoder, value => capture.ScreenRecordRequireHardwareEncoder = value);
-        NumericUpDown bitrateControl = Number(() => capture.ScreenRecordVideoBitrate, value => capture.ScreenRecordVideoBitrate = (int)value, 100, 200000, 100);
+        NumericUpDown bitrateControl = Number(() => capture.ScreenRecordVideoBitrate, value => capture.ScreenRecordVideoBitrate = (int)value, 1, 200000, 100);
         bitrateControl.Width = 160;
         Control bitrate = Row(Strings.TaskSettingsWindow_NativeRecorderBitrate, bitrateControl);
         BoundValue<bool> recordCamera = new(capture.ScreenRecordCamera, value => capture.ScreenRecordCamera = value);

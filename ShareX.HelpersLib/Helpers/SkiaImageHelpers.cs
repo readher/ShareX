@@ -30,7 +30,7 @@ using System.IO;
 
 namespace ShareX.HelpersLib;
 
-public enum ImageFileFormat { Png, Jpeg, Gif, Bmp, Webp }
+public enum ImageFileFormat { Png, Jpeg, Gif, Bmp, Webp, Avif, Jxl }
 
 /// <summary>Image operations that own their pixels independently of the source file or stream.</summary>
 public static partial class SkiaImageHelpers
@@ -191,6 +191,14 @@ public static partial class SkiaImageHelpers
     {
         try
         {
+            if (AvifJxlCodec.IsAvifOrJxl(filePath))
+            {
+                string extension = Path.GetExtension(filePath);
+                return extension.Equals(".avif", StringComparison.OrdinalIgnoreCase)
+                    ? AvifJxlCodec.LoadAvif(filePath)
+                    : AvifJxlCodec.LoadJxl(filePath);
+            }
+
             using FileStream stream = File.OpenRead(filePath);
             return Decode(stream, HelpersOptions.RotateImageByExifOrientationData);
         }
@@ -326,6 +334,17 @@ public static partial class SkiaImageHelpers
 
     public static void Save(this SKBitmap bitmap, Stream stream, ImageFileFormat format, int quality = 100)
     {
+        if (format == ImageFileFormat.Avif)
+        {
+            if (!AvifJxlCodec.SaveAvif(bitmap, stream, quality)) throw new InvalidDataException("AVIF encoding failed.");
+            return;
+        }
+        if (format == ImageFileFormat.Jxl)
+        {
+            if (!AvifJxlCodec.SaveJxl(bitmap, stream, quality)) throw new InvalidDataException("JPEG XL encoding failed.");
+            return;
+        }
+
         bitmap.Save(stream, format switch
         {
             ImageFileFormat.Jpeg => SKEncodedImageFormat.Jpeg,
@@ -348,6 +367,8 @@ public static partial class SkiaImageHelpers
         ".gif" => ImageFileFormat.Gif,
         ".bmp" => ImageFileFormat.Bmp,
         ".webp" => ImageFileFormat.Webp,
+        ".avif" => ImageFileFormat.Avif,
+        ".jxl" => ImageFileFormat.Jxl,
         _ => ImageFileFormat.Png
     };
 

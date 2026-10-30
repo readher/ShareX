@@ -31,6 +31,7 @@ using ShareX.AvaloniaUI.Imaging;
 using ShareX.AvaloniaUI.Theming;
 using ShareX.HelpersLib;
 using ShareX.Localization;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -259,6 +260,16 @@ internal sealed class ThumbnailItemViewModel : INotifyPropertyChanged, IDisposab
 
             if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath) && FileHelpers.IsImageFile(filePath))
             {
+                if (AvifJxlCodec.IsAvifOrJxl(filePath))
+                {
+                    using SKBitmap nativeImage = SkiaImageHelpers.LoadImage(filePath);
+                    if (nativeImage == null) return null;
+                    using MemoryStream png = new();
+                    nativeImage.Save(png, SKEncodedImageFormat.Png);
+                    png.Position = 0;
+                    return Bitmap.DecodeToWidth(png, width, BitmapInterpolationMode.HighQuality);
+                }
+
                 using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 return Bitmap.DecodeToWidth(stream, width, BitmapInterpolationMode.HighQuality);
             }

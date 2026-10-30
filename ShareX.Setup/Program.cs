@@ -90,7 +90,7 @@ namespace ShareX.Setup
         private static string MicrosoftStoreDebugAppxPath => Path.Combine(OutputDir, $"ShareX-{AppVersion}-MicrosoftStore-debug-{Platform}.appx");
         private static string MakeAppxPath => Path.Combine(WindowsKitsDir, "x64", "makeappx.exe");
 
-        private const string InnoSetupCompilerPath = @"C:\Program Files (x86)\Inno Setup 6\ISCC.exe";
+        private const string InnoSetupCompilerPath = @"C:\Program Files\Inno Setup 7\ISCC.exe";
 
         private static void Main(string[] args)
         {

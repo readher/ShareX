@@ -13,6 +13,13 @@
 <p align="center"><a href="https://getsharex.com"><img src="https://getsharex.com/img/ShareX_Screenshot.png" alt="ShareX Screenshot"/></a></p>
 <p align="center">For further information please check our <a href="https://getsharex.com">website</a></p>
 
+## This fork
+
+This build tracks ShareX 22.0.1 and adds AVIF and JPEG XL image support, plus a 1 kbps video bitrate floor.
+
+- AVIF, WebP, and AV1 video support originated with [Delphox/ShareX](https://github.com/Delphox/ShareX). WebP encode and decode in 22.0.0 come from Skia.
+- JPEG XL support originated with [koloved/ShareX](https://github.com/koloved/ShareX).
+
 # ShareX - Free Screen Capture, Screenshot, File Sharing and Productivity Tool
 
 ShareX is a free and open source screenshot tool, screen recorder, file sharing tool and productivity application for Windows. It is designed for users who need fast screen capture, powerful screenshot editing, automated sharing, custom upload destinations and practical utilities in one lightweight desktop app.

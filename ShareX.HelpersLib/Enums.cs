@@ -69,7 +69,20 @@ namespace ShareX.HelpersLib
         [Description("gif")]
         GIF,
         [Description("bmp")]
-        BMP
+        BMP,
+        [Description("webp")]
+        WEBP,
+        [Description("avif")]
+        AVIF,
+        [Description("jxl")]
+        JXL
+    }
+
+    public enum AvifTuneIQ
+    {
+        Default,
+        PSNR,
+        SSIM
     }
 
     public enum HashType

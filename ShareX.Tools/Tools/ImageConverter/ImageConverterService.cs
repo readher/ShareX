@@ -45,6 +45,8 @@ public static class ImageConverterService
 
     public static SKBitmap? LoadImage(string filePath)
     {
+        if (AvifJxlCodec.IsAvifOrJxl(filePath)) return SkiaImageHelpers.LoadImage(filePath);
+
         using SKCodec? codec = SKCodec.Create(filePath);
         if (codec == null)
         {

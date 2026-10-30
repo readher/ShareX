@@ -73,7 +73,7 @@ public sealed record RecordingOptions
         if (WindowHandle == 0 && (Region.Width < 2 || Region.Height < 2))
             throw new ArgumentException("Select a window or a region of at least 2 × 2 pixels.", nameof(Region));
         if (FramesPerSecond is < 1 or > 240) throw new ArgumentOutOfRangeException(nameof(FramesPerSecond));
-        if (VideoBitrate is < 100_000 or > 200_000_000) throw new ArgumentOutOfRangeException(nameof(VideoBitrate));
+        if (VideoBitrate is < 1_000 or > 200_000_000) throw new ArgumentOutOfRangeException(nameof(VideoBitrate));
         if (AudioBitrate is not (96_000 or 128_000 or 160_000 or 192_000)) throw new ArgumentOutOfRangeException(nameof(AudioBitrate));
         if (Duration < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(Duration));
         if (!Enum.IsDefined(CameraResolution)) throw new ArgumentOutOfRangeException(nameof(CameraResolution));
